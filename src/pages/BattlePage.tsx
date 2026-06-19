@@ -150,12 +150,12 @@ const PokemonPicker: React.FC<{
 
       {/* Search */}
       <div className="w-full relative">
-        <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={14} />
+        <FiSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={16} />
         <input
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Search Pokémon..."
-          className="w-full pl-9 pr-4 py-2 glass rounded-xl border border-white/10 bg-transparent outline-none text-xs"
+          className="w-full pl-11 pr-4 py-2.5 glass rounded-xl border border-white/10 bg-transparent outline-none text-xs transition-all focus:border-indigo-500/60 focus:shadow-lg focus:shadow-indigo-500/10"
           style={{ color: 'var(--text-primary)' }}
         />
         <AnimatePresence>

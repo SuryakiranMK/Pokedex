@@ -65,7 +65,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
         className="relative"
       >
         <div className={`relative flex items-center glass rounded-2xl border transition-all duration-300 ${focused ? 'border-indigo-500/60 shadow-lg shadow-indigo-500/20' : 'border-white/10'}`}>
-          <FiSearch className="absolute left- text-gray-400" size={18} />
+          <FiSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={18} />
           <input
             ref={inputRef}
             type="text"
@@ -81,7 +81,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
             autoComplete="off"
           />
           {query && (
-            <button onClick={() => { setQuery(''); onSearch?.('') }} className="absolute right-4 text-gray-400 hover:text-white transition-colors">
+            <button onClick={() => { setQuery(''); onSearch?.('') }} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white transition-colors">
               <FiX size={16} />
             </button>
           )}
