@@ -7,7 +7,8 @@ import {
 import { GENERATIONS } from '../utils/constants'
 
 // ---- Pokémon list (infinite) ----
-export const usePokemonInfinite = (limit = 24, generations: number[] = []) => {
+export const usePokemonInfinite = (limit = 150, generations: number[] = []) => {
+  const finalLimit = Math.min(limit, 150)
   let startOffset = 0
   let maxLimit = 1025
 
@@ -24,11 +25,11 @@ export const usePokemonInfinite = (limit = 24, generations: number[] = []) => {
   }
 
   return useInfiniteQuery({
-    queryKey: ['pokemon-infinite', limit, generations],
+    queryKey: ['pokemon-infinite', finalLimit, generations],
     queryFn: ({ pageParam = startOffset }) => {
       const currentOffset = pageParam as number
       const remainingInRange = startOffset + maxLimit - currentOffset
-      const fetchLimit = Math.min(limit, remainingInRange)
+      const fetchLimit = Math.min(finalLimit, remainingInRange)
       if (fetchLimit <= 0) {
         return Promise.resolve({ results: [], next: null, previous: null, count: 0 })
       }

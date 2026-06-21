@@ -84,7 +84,7 @@ const PokedexPage: React.FC = () => {
   }, [searchParams, filters.generations, filters.types])
   const { ref: sentinelRef, inView } = useInView({ threshold: 0 })
 
-  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } = usePokemonInfinite(24, filters.generations)
+  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } = usePokemonInfinite(150, filters.generations)
 
   // Fetch full pokemon data for each entry
   const allEntries = data?.pages.flatMap((p) => p.results) ?? []

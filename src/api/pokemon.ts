@@ -6,7 +6,8 @@ import type {
 
 // ---------- Pokémon ----------
 export const fetchPokemonList = async (limit = 20, offset = 0): Promise<PokemonListResponse> => {
-  const { data } = await api.get(`/pokemon?limit=${limit}&offset=${offset}`)
+  const finalLimit = Math.min(limit, 150)
+  const { data } = await api.get(`/pokemon?limit=${finalLimit}&offset=${offset}`)
   return data
 }
 
