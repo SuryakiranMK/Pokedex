@@ -448,7 +448,7 @@ const LandingPage: React.FC = () => {
                 <div className="relative py-3 flex items-center justify-center">
                   <div className="absolute w-28 h-28 rounded-full bg-emerald-500/10 blur-2xl animate-pulse" />
                   <img
-                    src="https://archives.bulbagarden.net/media/upload/f/f0/LGPE_Professor_Oak.png"
+                    src="https://archives.bulbagarden.net/media/upload/3/3e/Lets_Go_Pikachu_Eevee_Professor_Oak.png"
                     alt="Professor Oak"
                     className="w-36 h-36 object-contain drop-shadow-2xl relative z-10 float"
                     style={{ filter: 'drop-shadow(0 6px 20px rgba(16, 185, 129, 0.5))' }}
