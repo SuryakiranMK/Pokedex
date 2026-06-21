@@ -245,6 +245,7 @@ const QUICK_NAV = [
     color: '#818cf8',
     glow: 'rgba(129,140,248,0.35)',
     gradient: 'linear-gradient(135deg, #4f46e5, #818cf8)',
+    pokemonId: 25, // Pikachu
   },
   {
     path: '/team',
@@ -254,6 +255,7 @@ const QUICK_NAV = [
     color: '#f472b6',
     glow: 'rgba(244,114,182,0.35)',
     gradient: 'linear-gradient(135deg, #be185d, #f472b6)',
+    pokemonId: 448, // Lucario
   },
   {
     path: '/compare',
@@ -263,6 +265,7 @@ const QUICK_NAV = [
     color: '#22d3ee',
     glow: 'rgba(34,211,238,0.35)',
     gradient: 'linear-gradient(135deg, #0891b2, #22d3ee)',
+    pokemonId: 150, // Mewtwo
   },
   {
     path: '/regions',
@@ -272,6 +275,7 @@ const QUICK_NAV = [
     color: '#fbbf24',
     glow: 'rgba(251,191,36,0.35)',
     gradient: 'linear-gradient(135deg, #b45309, #fbbf24)',
+    pokemonId: 149, // Dragonite
   },
   {
     path: '/types',
@@ -281,6 +285,7 @@ const QUICK_NAV = [
     color: '#34d399',
     glow: 'rgba(52,211,153,0.35)',
     gradient: 'linear-gradient(135deg, #047857, #34d399)',
+    pokemonId: 133, // Eevee
   },
   {
     path: '/battle',
@@ -290,6 +295,7 @@ const QUICK_NAV = [
     color: '#f87171',
     glow: 'rgba(248,113,113,0.35)',
     gradient: 'linear-gradient(135deg, #b91c1c, #f87171)',
+    pokemonId: 658, // Greninja
   },
 ]
 
@@ -299,126 +305,193 @@ const LandingPage: React.FC = () => {
   const heroY = useTransform(scrollY, [0, 500], [0, -100])
   const heroOpacity = useTransform(scrollY, [0, 350], [1, 0])
 
-  // Rotating silhouettes
-  const silhouettes = [1, 4, 7, 25, 39, 52, 63, 92, 104, 131, 143, 147]
+  // Featured Hero Showcase Pokémon
+  const HERO_POKEMON = [
+    { id: 6, name: 'charizard', type: 'fire' },
+    { id: 25, name: 'pikachu', type: 'electric' },
+    { id: 150, name: 'mewtwo', type: 'psychic' },
+    { id: 384, name: 'rayquaza', type: 'dragon' },
+    { id: 448, name: 'lucario', type: 'fighting' },
+    { id: 658, name: 'greninja', type: 'water' },
+    { id: 94, name: 'gengar', type: 'ghost' },
+    { id: 133, name: 'eevee', type: 'normal' },
+    { id: 249, name: 'lugia', type: 'psychic' },
+  ]
   const [sIdx, setSIdx] = useState(0)
   useEffect(() => {
-    const id = setInterval(() => setSIdx((i) => (i + 1) % silhouettes.length), 2500)
+    const id = setInterval(() => setSIdx((i) => (i + 1) % HERO_POKEMON.length), 3500)
     return () => clearInterval(id)
   }, [])
 
   return (
     <div className="overflow-x-hidden w-full">
       {/* ── HERO ── */}
-      <section className="relative min-h-screen flex flex-col items-center justify-center px-6 pt-24 pb-12 text-center overflow-hidden">
-        {/* Floating Pokéballs */}
-        {[...Array(6)].map((_, i) => (
+      <section className="relative min-h-screen flex flex-col items-center justify-center px-6 pt-28 pb-12 overflow-hidden">
+        {/* Floating Pokémon and Pokéballs background watermarks */}
+        {[
+          { id: 151, color: '#f85888', size: 100, x: 8, y: 15, delay: 0.2 },  // Mew
+          { id: 251, color: '#78c850', size: 120, x: 25, y: 55, delay: 1.5 }, // Celebi
+          { id: 494, color: '#f08030', size: 95, x: 45, y: 22, delay: 2.7 },  // Victini
+          { id: 385, color: '#f8d030', size: 110, x: 65, y: 70, delay: 0.9 }, // Jirachi
+          { id: 175, color: '#ee99ac', size: 85, x: 85, y: 18, delay: 3.4 },  // Togepi
+          { id: 0, color: '#ef4444', size: 130, x: 75, y: 40, delay: 4.1 },   // Standard Pokéball
+        ].map((item, i) => (
           <motion.div
             key={i}
-            className="absolute opacity-10 pointer-events-none"
+            className="absolute opacity-[0.08] pointer-events-none"
             style={{
-              left: `${8 + i * 15}%`,
-              top: `${15 + (i % 3) * 28}%`,
-              width: 50 + i * 22,
-              height: 50 + i * 22,
+              left: `${item.x}%`,
+              top: `${item.y}%`,
+              width: item.size,
+              height: item.size,
             }}
             animate={{ y: [0, -24, 0], rotate: [0, 360] }}
-            transition={{ duration: 7 + i * 2, repeat: Infinity, ease: 'linear', delay: i * 0.9 }}
+            transition={{ duration: 10 + i * 3, repeat: Infinity, ease: 'linear', delay: item.delay }}
           >
-            <div className="w-full h-full rounded-full" style={{
-              background: 'linear-gradient(to bottom, #ef4444 50%, #fff 50%)',
-              border: '3px solid rgba(255,255,255,0.3)',
-            }} />
+            {item.id === 0 ? (
+              <div className="w-full h-full rounded-full" style={{
+                background: 'linear-gradient(to bottom, #ef4444 50%, #fff 50%)',
+                border: '3px solid rgba(255,255,255,0.2)',
+              }} />
+            ) : (
+              <img
+                src={getPokemonArtwork(item.id)}
+                alt=""
+                className="w-full h-full object-contain filter grayscale opacity-80"
+                style={{ filter: `drop-shadow(0 0 15px ${item.color})` }}
+              />
+            )}
           </motion.div>
         ))}
 
-        {/* Rotating silhouette */}
-        <motion.div style={{ y: heroY, opacity: heroOpacity }} className="absolute inset-0 flex items-center justify-center pointer-events-none">
-          <AnimatePresence mode="wait">
-            <motion.img
-              key={silhouettes[sIdx]}
-              src={getPokemonArtwork(silhouettes[sIdx])}
-              alt=""
-              aria-hidden="true"
-              className="w-72 h-72 md:w-[480px] md:h-[480px] opacity-5"
-              style={{ filter: 'brightness(0) invert(1)' }}
-              initial={{ opacity: 0, scale: 0.8, rotate: -10 }}
-              animate={{ opacity: 0.05, scale: 1, rotate: 0 }}
-              exit={{ opacity: 0, scale: 1.1, rotate: 10 }}
-              transition={{ duration: 0.8 }}
-            />
-          </AnimatePresence>
-        </motion.div>
-
-        {/* Hero content */}
-        <motion.div
-          style={{ y: heroY, opacity: heroOpacity }}
-          className="relative z-10 w-full max-w-4xl mx-auto"
-          initial={{ opacity: 0, y: 50 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.9, ease: [0.4, 0, 0.2, 1] }}
-        >
-          {/* Badge */}
+        <div className="w-full max-w-6xl mx-auto grid lg:grid-cols-12 gap-8 items-center relative z-10 text-center lg:text-left">
+          {/* Left Column — Text & Search */}
           <motion.div
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full glass border border-white/10 text-sm mb-8"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-          >
-            <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
-            <span style={{ color: 'var(--text-secondary)' }}>1,025 Pokémon across 9 generations</span>
-          </motion.div>
-
-          {/* Title */}
-          <motion.h1
-            className="hero-title gradient-text mb-10"
+            style={{ y: heroY, opacity: heroOpacity }}
+            className="lg:col-span-7 space-y-6"
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
+            transition={{ duration: 0.8, ease: 'easeOut' }}
           >
-            The Ultimate<br />Pokédex
-          </motion.h1>
+            {/* Badge */}
+            <div className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full glass border border-white/10 text-sm">
+              <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
+              <span style={{ color: 'var(--text-secondary)' }}>1,025 Pokémon across 9 generations</span>
+            </div>
 
-          {/* Search */}
-          <motion.div
-            className="relative w-full max-w-xl mx-auto mb-10"
-            style={{ zIndex: 20 }}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4 }}
-          >
-            <SearchBar placeholder="Search by name or Pokédex number..." />
+            {/* Title */}
+            <h1 className="hero-title gradient-text tracking-tight leading-tight">
+              The Ultimate<br />Pokédex
+            </h1>
+
+            {/* Search input */}
+            <div className="relative w-full max-w-xl mx-auto lg:mx-0" style={{ zIndex: 20 }}>
+              <SearchBar placeholder="Search by name or Pokédex number..." />
+            </div>
+
+            {/* CTA buttons */}
+            <div className="flex flex-wrap justify-center lg:justify-start gap-4 pt-2">
+              <Link
+                to="/pokedex"
+                className="px-8 py-4 rounded-2xl font-bold text-sm transition-all flex items-center gap-2.5 hover:scale-105 active:scale-95 text-white"
+                style={{
+                  background: 'linear-gradient(135deg, #6366f1, #ec4899)',
+                  boxShadow: '0 8px 32px rgba(99,102,241,0.4)',
+                }}
+                onClick={() => soundService.play('navigation')}
+              >
+                <IconPokedex /> Explore Pokédex
+              </Link>
+              <Link
+                to="/team"
+                className="px-8 py-4 rounded-2xl font-bold text-sm glass border border-white/15 hover:border-white/30 transition-all flex items-center gap-2.5 hover:scale-105 active:scale-95"
+                style={{ color: 'var(--text-primary)' }}
+                onClick={() => soundService.play('navigation')}
+              >
+                <IconTeam /> Build a Team
+              </Link>
+            </div>
           </motion.div>
 
-          {/* CTA buttons */}
+          {/* Right Column — 3D Showcase Card (Full-color) */}
           <motion.div
-            className="flex flex-wrap justify-center gap-4"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.6 }}
+            style={{ y: heroY, opacity: heroOpacity }}
+            className="lg:col-span-5 flex justify-center lg:justify-end w-full"
+            initial={{ opacity: 0, scale: 0.9, x: 50 }}
+            animate={{ opacity: 1, scale: 1, x: 0 }}
+            transition={{ duration: 0.9, delay: 0.15, ease: 'easeOut' }}
           >
-            <Link
-              to="/pokedex"
-              className="px-8 py-4 rounded-2xl font-bold text-sm transition-all flex items-center gap-2.5 hover:scale-105 active:scale-95"
-              style={{
-                background: 'linear-gradient(135deg, #6366f1, #ec4899)',
-                boxShadow: '0 8px 32px rgba(99,102,241,0.45)',
-                color: '#fff',
-              }}
-              onClick={() => soundService.play('navigation')}
-            >
-              <IconPokedex /> Explore Pokédex
-            </Link>
-            <Link
-              to="/team"
-              className="px-8 py-4 rounded-2xl font-bold text-sm glass border border-white/15 hover:border-white/30 transition-all flex items-center gap-2.5 hover:scale-105 active:scale-95"
-              style={{ color: 'var(--text-primary)' }}
-              onClick={() => soundService.play('navigation')}
-            >
-              <IconTeam /> Build a Team
-            </Link>
+            <div className="relative group select-none pointer-events-auto">
+              {/* Outer decorative halo glow matching active type */}
+              <div
+                className="absolute inset-0 blur-3xl opacity-20 transition-all duration-700 pointer-events-none"
+                style={{ background: TYPE_COLORS[HERO_POKEMON[sIdx].type]?.bg }}
+              />
+
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={HERO_POKEMON[sIdx].id}
+                  className="glass-card p-6 rounded-3xl w-72 h-[380px] relative overflow-hidden flex flex-col items-center justify-between border-white/10 text-center select-none"
+                  style={{
+                    background: `linear-gradient(135deg, ${TYPE_COLORS[HERO_POKEMON[sIdx].type]?.bg ?? '#777'}20 0%, var(--bg-card) 60%)`,
+                    border: `1px solid ${TYPE_COLORS[HERO_POKEMON[sIdx].type]?.bg ?? '#777'}40`,
+                    boxShadow: `0 20px 50px rgba(0,0,0,0.5), 0 0 40px ${TYPE_COLORS[HERO_POKEMON[sIdx].type]?.glow ?? 'rgba(255,255,255,0.05)'}`,
+                  }}
+                  animate={{ y: [0, -12, 0] }}
+                  transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
+                  initial={{ opacity: 0, scale: 0.9, rotate: -3 }}
+                  exit={{ opacity: 0, scale: 0.9, rotate: 3 }}
+                  whileHover={{ scale: 1.03 }}
+                >
+                  {/* Decorative background watermark ID */}
+                  <div
+                    className="absolute -bottom-6 -right-6 font-black opacity-[0.03] select-none pointer-events-none"
+                    style={{ fontSize: '9rem', lineHeight: 1, color: TYPE_COLORS[HERO_POKEMON[sIdx].type]?.bg }}
+                  >
+                    {HERO_POKEMON[sIdx].id}
+                  </div>
+
+                  {/* Header info */}
+                  <div className="w-full flex justify-between items-center text-xs font-mono font-bold">
+                    <span style={{ color: TYPE_COLORS[HERO_POKEMON[sIdx].type]?.bg }}>#{String(HERO_POKEMON[sIdx].id).padStart(4, '0')}</span>
+                    <span className="uppercase tracking-widest px-2 py-0.5 rounded-full text-[9px] border" style={{ borderColor: `${TYPE_COLORS[HERO_POKEMON[sIdx].type]?.bg}40`, color: TYPE_COLORS[HERO_POKEMON[sIdx].type]?.bg, background: `${TYPE_COLORS[HERO_POKEMON[sIdx].type]?.bg}10` }}>
+                      {HERO_POKEMON[sIdx].type}
+                    </span>
+                  </div>
+
+                  {/* Pokémon Artwork */}
+                  <div className="relative py-3 flex items-center justify-center">
+                    {/* Radial type color backing */}
+                    <div
+                      className="absolute w-28 h-28 rounded-full blur-2xl opacity-20"
+                      style={{ background: TYPE_COLORS[HERO_POKEMON[sIdx].type]?.bg }}
+                    />
+                    <img
+                      src={getPokemonArtwork(HERO_POKEMON[sIdx].id)}
+                      alt={HERO_POKEMON[sIdx].name}
+                      className="w-40 h-40 object-contain drop-shadow-2xl relative z-10 float"
+                      style={{ filter: `drop-shadow(0 6px 20px ${TYPE_COLORS[HERO_POKEMON[sIdx].type]?.glow})` }}
+                    />
+                  </div>
+
+                  {/* Footer details */}
+                  <div className="w-full">
+                    <h3 className="text-2xl font-black capitalize mb-2 text-gray-100" style={{ fontFamily: 'var(--font-display)' }}>
+                      {capitalize(HERO_POKEMON[sIdx].name)}
+                    </h3>
+                    <Link
+                      to={`/pokemon/${HERO_POKEMON[sIdx].name}`}
+                      className="inline-block text-[10px] font-bold uppercase tracking-wider px-4 py-1.5 rounded-full bg-white/5 border border-white/15 hover:bg-white/10 hover:border-white/20 text-gray-300 transition-all active:scale-95"
+                      onClick={() => soundService.play('click')}
+                    >
+                      Inspect stats →
+                    </Link>
+                  </div>
+                </motion.div>
+              </AnimatePresence>
+            </div>
           </motion.div>
-        </motion.div>
+        </div>
 
         {/* Scroll indicator */}
         <motion.div
@@ -511,7 +584,7 @@ const LandingPage: React.FC = () => {
           </motion.div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-            {QUICK_NAV.map(({ path, label, desc, icon: Icon, color, glow, gradient }, i) => (
+            {QUICK_NAV.map(({ path, label, desc, icon: Icon, color, glow, gradient, pokemonId }, i) => (
               <motion.div
                 key={path}
                 initial={{ opacity: 0, y: 40 }}
@@ -552,7 +625,7 @@ const LandingPage: React.FC = () => {
                     style={{ background: gradient }}
                   />
 
-                  <div className="p-7">
+                  <div className="p-7 relative z-10">
                     {/* Icon container */}
                     <div
                       className="w-14 h-14 rounded-2xl flex items-center justify-center mb-5 transition-transform duration-300 group-hover:scale-110"
@@ -576,7 +649,7 @@ const LandingPage: React.FC = () => {
 
                     {/* Description */}
                     <p
-                      className="text-sm leading-relaxed mb-5"
+                      className="text-sm leading-relaxed mb-5 max-w-[70%]"
                       style={{ color: 'var(--text-secondary)' }}
                     >
                       {desc}
@@ -591,6 +664,18 @@ const LandingPage: React.FC = () => {
                       <svg viewBox="0 0 20 20" fill="currentColor" width="14" height="14" className="group-hover:translate-x-1 transition-transform duration-300">
                         <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
                       </svg>
+                    </div>
+                  </div>
+
+                  {/* Floating Pokémon artwork image on the right/bottom */}
+                  <div className="absolute right-0 bottom-0 w-32 h-32 pointer-events-none select-none z-0 overflow-visible">
+                    <div className="w-full h-full float">
+                      <img
+                        src={getPokemonArtwork(pokemonId)}
+                        alt=""
+                        className="absolute -right-5 -bottom-5 w-28 h-28 object-contain opacity-25 group-hover:opacity-85 group-hover:scale-115 group-hover:-translate-y-2 group-hover:-rotate-6 transition-all duration-500 filter drop-shadow-2xl"
+                        style={{ filter: `drop-shadow(0 10px 30px ${glow})` }}
+                      />
                     </div>
                   </div>
                 </Link>

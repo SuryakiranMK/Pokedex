@@ -8,6 +8,18 @@ import { capitalize } from '../utils/helpers'
 import TypeBadge from '../components/ui/TypeBadge'
 import { soundService } from '../services/sound'
 
+const REGION_POKEMON_MAP: Record<string, number> = {
+  kanto: 150,     // Mewtwo
+  johto: 249,     // Lugia
+  hoenn: 384,     // Rayquaza
+  sinnoh: 483,    // Dialga
+  unova: 643,     // Reshiram
+  kalos: 716,     // Xerneas
+  alola: 791,     // Solgaleo
+  galar: 888,     // Zacian
+  paldea: 1008,   // Miraidon
+}
+
 const RegionsPage: React.FC = () => {
   const [selected, setSelected] = useState<string | null>(null)
   const region = REGIONS.find((r) => r.id === selected)
@@ -53,6 +65,17 @@ const RegionsPage: React.FC = () => {
               animate={selected === r.id ? { opacity: 0.2, scale: 1.5 } : { opacity: 0.1, scale: 1 }}
               transition={{ duration: 0.4 }}
             />
+            {/* BG Pokémon Artwork Watermark */}
+            <div className="absolute right-0 bottom-0 w-20 h-20 pointer-events-none select-none z-0 overflow-visible">
+              <div className="w-full h-full float">
+                <img
+                  src={getPokemonArtwork(REGION_POKEMON_MAP[r.id] ?? 25)}
+                  alt=""
+                  className="absolute -right-3 -bottom-3 w-20 h-20 object-contain opacity-20 group-hover:opacity-60 group-hover:scale-110 group-hover:-rotate-6 transition-all duration-500 filter drop-shadow-2xl"
+                  style={{ filter: `drop-shadow(0 6px 16px ${r.color}40)` }}
+                />
+              </div>
+            </div>
             <div className="relative z-10">
               <div className="flex items-start justify-between mb-2">
                 <div>

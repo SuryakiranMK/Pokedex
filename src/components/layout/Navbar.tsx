@@ -8,6 +8,7 @@ import {
 import SearchBar from '../ui/SearchBar'
 import { useSoundStore } from '../../store'
 import { soundService } from '../../services/sound'
+import { getPokemonArtwork } from '../../api/pokemon'
 
 const NAV_LINKS = [
   { path: '/',            label: 'Home',        icon: FiHome },
@@ -53,6 +54,12 @@ const Navbar: React.FC = () => {
         <div className="max-w-7xl mx-auto pl-6 pr-4 h-16 flex items-center justify-between gap-4">
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2 flex-shrink-0" onClick={() => soundService.play('navigation')}>
+            <img
+              src={getPokemonArtwork(25)}
+              alt="Pikachu Mascot"
+              className="w-7 h-7 object-contain hover:scale-125 hover:rotate-12 transition-transform duration-300 pointer-events-auto"
+              style={{ filter: 'drop-shadow(0 0 6px rgba(248, 208, 48, 0.8))' }}
+            />
             <span className="font-black text-xl tracking-tight gradient-text" style={{ fontFamily: 'var(--font-display)' }}>
               PokéDex
             </span>
