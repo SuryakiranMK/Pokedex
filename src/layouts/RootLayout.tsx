@@ -38,7 +38,7 @@ const RootLayout: React.FC = () => {
           animate="animate"
           exit="exit"
           transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
-          className="relative z-10 pt-16 min-h-screen"
+          className="relative z-10 pt-20 min-h-screen"
         >
           <Outlet />
         </motion.main>

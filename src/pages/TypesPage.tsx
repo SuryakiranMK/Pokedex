@@ -1,285 +1,439 @@
 import React, { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { useQuery } from '@tanstack/react-query'
-import { fetchType, fetchPokemon, getPokemonArtwork } from '../api/pokemon'
-import { TYPE_COLORS, TYPE_EMOJI } from '../utils/constants'
+import { Link } from 'react-router-dom'
+import { TYPE_COLORS, TYPE_EMOJI, TYPE_EFFECTIVENESS } from '../utils/constants'
 import { capitalize } from '../utils/helpers'
 import TypeBadge from '../components/ui/TypeBadge'
-import PokemonCard from '../components/pokemon/PokemonCard'
 import { soundService } from '../services/sound'
+import { FiSliders, FiZap, FiShield, FiHeart } from 'react-icons/fi'
 
 const ALL_TYPES = Object.keys(TYPE_COLORS)
 
-// Full 18×18 type chart: damage multiplier of [attackType][defendType]
-const TYPE_CHART: Record<string, Record<string, number>> = {
-  normal:   { rock: 0.5, ghost: 0, steel: 0.5 },
-  fire:     { fire: 0.5, water: 0.5, grass: 2, ice: 2, bug: 2, rock: 0.5, dragon: 0.5, steel: 2 },
-  water:    { fire: 2, water: 0.5, grass: 0.5, ground: 2, rock: 2, dragon: 0.5 },
-  electric: { water: 2, electric: 0.5, grass: 0.5, ground: 0, flying: 2, dragon: 0.5 },
-  grass:    { fire: 0.5, water: 2, grass: 0.5, poison: 0.5, ground: 2, flying: 0.5, bug: 0.5, rock: 2, dragon: 0.5, steel: 0.5 },
-  ice:      { fire: 0.5, water: 0.5, grass: 2, ice: 0.5, ground: 2, flying: 2, dragon: 2, steel: 0.5 },
-  fighting: { normal: 2, ice: 2, poison: 0.5, flying: 0.5, psychic: 0.5, bug: 0.5, rock: 2, ghost: 0, dark: 2, steel: 2, fairy: 0.5 },
-  poison:   { grass: 2, poison: 0.5, ground: 0.5, rock: 0.5, ghost: 0.5, steel: 0, fairy: 2 },
-  ground:   { fire: 2, electric: 2, grass: 0.5, poison: 2, flying: 0, bug: 0.5, rock: 2, steel: 2 },
-  flying:   { electric: 0.5, grass: 2, fighting: 2, bug: 2, rock: 0.5, steel: 0.5 },
-  psychic:  { fighting: 2, poison: 2, psychic: 0.5, dark: 0, steel: 0.5 },
-  bug:      { fire: 0.5, grass: 2, fighting: 0.5, poison: 0.5, flying: 0.5, psychic: 2, ghost: 0.5, dark: 2, steel: 0.5, fairy: 0.5 },
-  rock:     { fire: 2, ice: 2, fighting: 0.5, ground: 0.5, flying: 2, bug: 2, steel: 0.5 },
-  ghost:    { normal: 0, psychic: 2, ghost: 2, dark: 0.5 },
-  dragon:   { dragon: 2, steel: 0.5, fairy: 0 },
-  dark:     { fighting: 0.5, psychic: 2, ghost: 2, dark: 0.5, fairy: 0.5 },
-  steel:    { fire: 0.5, water: 0.5, electric: 0.5, ice: 2, rock: 2, steel: 0.5, fairy: 2 },
-  fairy:    { fire: 0.5, fighting: 2, poison: 0.5, dragon: 2, dark: 2, steel: 0.5 },
+const getMultiplier = (atk: string, def1: string, def2: string | null): number => {
+  const getSingle = (a: string, d: string): number => {
+    const eff = TYPE_EFFECTIVENESS[a]
+    if (!eff) return 1
+    if (eff.immune.includes(d)) return 0
+    if (eff.superEffective.includes(d)) return 2
+    if (eff.notEffective.includes(d)) return 0.5
+    return 1
+  }
+  const m1 = getSingle(atk, def1)
+  const m2 = def2 ? getSingle(atk, def2) : 1
+  return m1 * m2
 }
 
-const getMultiplier = (atk: string, def: string): number => TYPE_CHART[atk]?.[def] ?? 1
-
 const cellColor = (m: number) => {
-  if (m === 0)   return { bg: '#1a1a2e', text: '#555' }
-  if (m === 0.5) return { bg: 'rgba(239,68,68,0.15)',  text: '#f87171' }
-  if (m === 2)   return { bg: 'rgba(34,197,94,0.15)', text: '#4ade80' }
-  return { bg: 'rgba(255,255,255,0.04)', text: 'rgba(240,240,255,0.4)' }
+  if (m === 0)   return { bg: 'rgba(75, 85, 99, 0.4)', text: '#9ca3af', label: '0' }
+  if (m === 0.25) return { bg: 'rgba(239, 68, 68, 0.25)', text: '#f87171', label: '¼' }
+  if (m === 0.5) return { bg: 'rgba(239, 68, 68, 0.12)',  text: '#fca5a5', label: '½' }
+  if (m === 2)   return { bg: 'rgba(16, 185, 129, 0.15)', text: '#34d399', label: '2' }
+  if (m === 4)   return { bg: 'rgba(16, 185, 129, 0.3)', text: '#6ee7b7', label: '4' }
+  return { bg: 'transparent', text: 'rgba(255,255,255,0.06)', label: '•' }
 }
 
 const TypesPage: React.FC = () => {
-  const [selected, setSelected] = useState<string | null>(null)
-  const [viewMode, setViewMode] = useState<'chart' | 'pokemon'>('chart')
+  const [selectedTypes, setSelectedTypes] = useState<string[]>([])
+  const [hoveredRow, setHoveredRow] = useState<string | null>(null)
+  const [hoveredCol, setHoveredCol] = useState<string | null>(null)
 
-  // Fetch type data for selected type
-  const { data: typeData } = useQuery({
-    queryKey: ['type-detail', selected],
-    queryFn: () => fetchType(selected!),
-    enabled: !!selected,
-    staleTime: 1000 * 60 * 60,
-  })
+  const handleToggleType = (type: string) => {
+    soundService.play('click')
+    if (selectedTypes.includes(type)) {
+      setSelectedTypes(selectedTypes.filter((t) => t !== type))
+    } else {
+      if (selectedTypes.length >= 2) {
+        // Replace secondary with next selected
+        setSelectedTypes([selectedTypes[0], type])
+      } else {
+        setSelectedTypes([...selectedTypes, type])
+      }
+    }
+  }
 
-  // Fetch sample Pokémon of selected type
-  const pokemonOfType = typeData?.pokemon.slice(0, 12).map((p) => p.pokemon) ?? []
-  const { data: typePokemon, isLoading: loadingTypePokemon } = useQuery({
-    queryKey: ['type-pokemon', selected],
-    queryFn: () => Promise.all(pokemonOfType.map((p) => fetchPokemon(p.name))),
-    enabled: pokemonOfType.length > 0,
-    staleTime: 1000 * 60 * 30,
-  })
+  // Calculate defenses & offenses if any type is selected
+  const primary = selectedTypes[0]
+  const secondary = selectedTypes[1] || null
 
-  const typeColor = selected ? TYPE_COLORS[selected] : null
+  const primaryColor = primary ? TYPE_COLORS[primary] : null
+  const secondaryColor = secondary ? TYPE_COLORS[secondary] : null
+
+  // Defensive effectiveness
+  const defenses = primary
+    ? ALL_TYPES.map((t) => ({
+        type: t,
+        multiplier: getMultiplier(t, primary, secondary),
+      }))
+    : []
+
+  const doubleWeak = defenses.filter((d) => d.multiplier === 4)
+  const weak = defenses.filter((d) => d.multiplier === 2)
+  const resistant = defenses.filter((d) => d.multiplier === 0.5)
+  const doubleResistant = defenses.filter((d) => d.multiplier === 0.25)
+  const immune = defenses.filter((d) => d.multiplier === 0)
+
+  // Offensive coverage (union of super-effective types)
+  const strengths = primary
+    ? Array.from(
+        new Set([
+          ...(TYPE_EFFECTIVENESS[primary]?.superEffective ?? []),
+          ...(secondary ? (TYPE_EFFECTIVENESS[secondary]?.superEffective ?? []) : []),
+        ])
+      )
+    : []
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-8">
+    <div className="max-w-7xl mx-auto px-6 py-10 page-enter relative z-10 space-y-8">
       {/* Header */}
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="mb-8">
-        <h1 className="text-4xl font-black gradient-text mb-1" style={{ fontFamily: 'var(--font-display)' }}>Type Chart</h1>
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+        <h1 className="text-4xl font-black gradient-text mb-1 flex items-center gap-2.5" style={{ fontFamily: 'var(--font-display)' }}>
+          <FiZap className="text-indigo-400" /> Type Matchup Calculator
+        </h1>
+        <p className="text-sm text-gray-400">
+          Select up to two types to calculate combined weaknesses, resistances, strengths, and explore matching Pokémon.
+        </p>
       </motion.div>
 
-      {/* Type selector */}
-      <div className="flex flex-wrap gap-2 mb-8">
-        {ALL_TYPES.map((t) => (
-          <motion.button
-            key={t}
-            whileHover={{ scale: 1.08 }} whileTap={{ scale: 0.95 }}
-            onClick={() => {
-              setSelected(selected === t ? null : t)
-              soundService.play('click')
-            }}
-            className={`transition-all ${selected === t ? 'ring-2 ring-white/40 scale-105' : 'opacity-80 hover:opacity-100'}`}
-          >
-            <TypeBadge type={t} size="md" />
-          </motion.button>
-        ))}
+      {/* 1. All Types Buttons Grid (Top Selector) */}
+      <div className="glass-card p-6 rounded-3xl border border-white/5 relative overflow-hidden">
+        {/* Decorative background glows */}
+        {primaryColor && (
+          <div
+            className="absolute -right-20 -top-20 w-72 h-72 rounded-full blur-3xl opacity-20 transition-all duration-700 pointer-events-none"
+            style={{ background: primaryColor.bg }}
+          />
+        )}
+        {secondaryColor && (
+          <div
+            className="absolute -left-20 -bottom-20 w-72 h-72 rounded-full blur-3xl opacity-15 transition-all duration-700 pointer-events-none"
+            style={{ background: secondaryColor.bg }}
+          />
+        )}
+
+        <div className="relative z-10 space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-sm font-mono font-bold uppercase tracking-wider text-gray-300">
+              Select Types (Max 2)
+            </h2>
+            {selectedTypes.length > 0 && (
+              <button
+                onClick={() => { setSelectedTypes([]); soundService.play('click') }}
+                className="text-xs text-red-400 hover:text-red-300 transition-colors font-bold uppercase tracking-wider"
+              >
+                Clear Selection
+              </button>
+            )}
+          </div>
+
+          <div className="grid grid-cols-3 sm:grid-cols-6 gap-3">
+            {ALL_TYPES.map((t) => {
+              const isSelected = selectedTypes.includes(t)
+              const orderIdx = selectedTypes.indexOf(t)
+              return (
+                <motion.button
+                  key={t}
+                  whileHover={{ scale: 1.03 }}
+                  whileTap={{ scale: 0.97 }}
+                  onClick={() => handleToggleType(t)}
+                  className={`py-3 rounded-2xl text-xs font-black capitalize transition-all border text-center cursor-pointer flex flex-col items-center justify-center gap-1.5 relative overflow-hidden ${
+                    isSelected
+                      ? 'text-white border-white/40 shadow-lg'
+                      : 'border-white/5 bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
+                  }`}
+                  style={{
+                    background: isSelected ? TYPE_COLORS[t]?.bg : undefined,
+                    boxShadow: isSelected ? `0 6px 20px ${TYPE_COLORS[t]?.glow}` : 'none',
+                  }}
+                >
+                  <span className="text-xl leading-none">{TYPE_EMOJI[t]}</span>
+                  <span className="font-semibold tracking-wide text-[11px]">{t}</span>
+                  {isSelected && (
+                    <span className="absolute top-1.5 right-2 w-4 h-4 rounded-full bg-black/30 border border-white/20 text-[9px] flex items-center justify-center font-bold">
+                      {orderIdx + 1}
+                    </span>
+                  )}
+                </motion.button>
+              )
+            })}
+          </div>
+        </div>
       </div>
 
-      {/* Selected type panel */}
+      {/* 2. Dropdown Matchup Details Box */}
       <AnimatePresence>
-        {selected && typeData && typeColor && (
+        {selectedTypes.length > 0 && (
           <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            className="glass-card rounded-2xl overflow-hidden mb-8"
-            style={{ border: `1px solid ${typeColor.bg}40` }}
+            initial={{ opacity: 0, y: -15, height: 0 }}
+            animate={{ opacity: 1, y: 0, height: 'auto' }}
+            exit={{ opacity: 0, y: -15, height: 0 }}
+            className="glass-card rounded-3xl overflow-hidden border border-white/5 relative"
+            style={{
+              boxShadow: '0 20px 40px rgba(0,0,0,0.5)',
+              background: `linear-gradient(135deg, ${primaryColor?.bg}0c 0%, var(--bg-card) 60%)`,
+            }}
           >
-            <div className="p-5 flex items-center justify-between flex-wrap gap-4" style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
-              <div className="flex items-center gap-3">
-                <span className="text-3xl">{TYPE_EMOJI[selected]}</span>
+            <div className="p-6 space-y-6">
+              {/* Heading */}
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-white/5 pb-4">
                 <div>
-                  <h2 className="text-2xl font-black capitalize" style={{ fontFamily: 'var(--font-display)', color: typeColor.bg }}>
-                    {capitalize(selected)} Type
-                  </h2>
-                  <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
-                    {typeData.pokemon.length} Pokémon · Gen {typeData.generation.name.replace('generation-', '')}
-                  </p>
+                  <span className="text-xs font-mono font-bold uppercase tracking-wider text-indigo-400">Matchup Analysis</span>
+                  <div className="flex items-center gap-2 mt-1 flex-wrap">
+                    <span className="text-lg font-black text-white">Selected Profile:</span>
+                    <TypeBadge type={primary} size="md" />
+                    {secondary && (
+                      <>
+                        <span className="text-gray-500 font-bold">+</span>
+                        <TypeBadge type={secondary} size="md" />
+                      </>
+                    )}
+                  </div>
                 </div>
+
+                {/* Redirect Find Pokémon Button */}
+                <Link
+                  to={`/pokedex?types=${selectedTypes.join(',')}`}
+                  onClick={() => soundService.play('navigation')}
+                  className="px-8 py-4 rounded-2xl text-sm font-black text-white shadow-xl cursor-pointer hover:scale-[1.05] active:scale-[0.97] transition-all duration-300 text-center flex items-center justify-center gap-2.5 hover:brightness-110 hover:shadow-2xl"
+                  style={{
+                    background: `linear-gradient(135deg, ${primaryColor?.bg || '#6366f1'}, ${secondaryColor?.bg || primaryColor?.bg || '#ec4899'})`,
+                    boxShadow: `0 8px 24px ${primaryColor?.glow || 'rgba(99,102,241,0.45)'}`,
+                  }}
+                >
+                  🔍 Find Pokémon
+                </Link>
               </div>
-              <div className="flex gap-2">
-                {(['chart', 'pokemon'] as const).map((m) => (
-                  <button
-                    key={m}
-                    onClick={() => setViewMode(m)}
-                    className={`px-4 py-2 rounded-xl text-sm font-semibold capitalize transition-all ${viewMode === m ? 'bg-white/10 text-white' : 'text-gray-400 hover:text-white'}`}
-                  >
-                    {m === 'chart' ? '📊 Matchups' : '🔴 Pokémon'}
-                  </button>
-                ))}
+
+              {/* 3-Column stats info */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {/* Column 1: Defensive Weakness */}
+                <div className="space-y-4 bg-red-500/[0.02] border border-red-500/10 p-4 rounded-2xl">
+                  <h3 className="text-xs font-bold uppercase tracking-widest text-red-400 flex items-center gap-1.5 border-b border-red-500/10 pb-2">
+                    <FiShield /> Weaknesses (Defending)
+                  </h3>
+                  
+                  {doubleWeak.length === 0 && weak.length === 0 ? (
+                    <p className="text-xs text-gray-500 italic">No weaknesses found.</p>
+                  ) : (
+                    <div className="space-y-3">
+                      {doubleWeak.length > 0 && (
+                        <div className="space-y-1.5">
+                          <span className="text-[10px] font-mono text-red-400 font-bold uppercase tracking-wider block">Takes 4x Damage</span>
+                          <div className="flex flex-wrap gap-1.5">
+                            {doubleWeak.map((d) => (
+                              <TypeBadge key={d.type} type={d.type} size="sm" showIcon={false} />
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      {weak.length > 0 && (
+                        <div className="space-y-1.5">
+                          <span className="text-[10px] font-mono text-red-400/80 font-bold uppercase tracking-wider block">Takes 2x Damage</span>
+                          <div className="flex flex-wrap gap-1.5">
+                            {weak.map((d) => (
+                              <TypeBadge key={d.type} type={d.type} size="sm" showIcon={false} />
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                {/* Column 2: Defensive Resistances */}
+                <div className="space-y-4 bg-green-500/[0.02] border border-green-500/10 p-4 rounded-2xl">
+                  <h3 className="text-xs font-bold uppercase tracking-widest text-green-400 flex items-center gap-1.5 border-b border-green-500/10 pb-2">
+                    <FiShield /> Resistances & Immunities
+                  </h3>
+
+                  {doubleResistant.length === 0 && resistant.length === 0 && immune.length === 0 ? (
+                    <p className="text-xs text-gray-500 italic">No resistances found.</p>
+                  ) : (
+                    <div className="space-y-3">
+                      {immune.length > 0 && (
+                        <div className="space-y-1.5">
+                          <span className="text-[10px] font-mono text-indigo-400 font-bold uppercase tracking-wider block font-black">Takes 0x Damage (Immune)</span>
+                          <div className="flex flex-wrap gap-1.5">
+                            {immune.map((d) => (
+                              <TypeBadge key={d.type} type={d.type} size="sm" showIcon={false} />
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      {doubleResistant.length > 0 && (
+                        <div className="space-y-1.5">
+                          <span className="text-[10px] font-mono text-green-400 font-bold uppercase tracking-wider block">Takes ¼x Damage</span>
+                          <div className="flex flex-wrap gap-1.5">
+                            {doubleResistant.map((d) => (
+                              <TypeBadge key={d.type} type={d.type} size="sm" showIcon={false} />
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      {resistant.length > 0 && (
+                        <div className="space-y-1.5">
+                          <span className="text-[10px] font-mono text-green-400/80 font-bold uppercase tracking-wider block">Takes ½x Damage</span>
+                          <div className="flex flex-wrap gap-1.5">
+                            {resistant.map((d) => (
+                              <TypeBadge key={d.type} type={d.type} size="sm" showIcon={false} />
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                {/* Column 3: Offensive Strengths */}
+                <div className="space-y-4 bg-indigo-500/[0.02] border border-indigo-500/10 p-4 rounded-2xl">
+                  <h3 className="text-xs font-bold uppercase tracking-widest text-indigo-400 flex items-center gap-1.5 border-b border-indigo-500/10 pb-2">
+                    <FiHeart /> Offensive Strengths
+                  </h3>
+
+                  {strengths.length === 0 ? (
+                    <p className="text-xs text-gray-500 italic">No offensive coverage records.</p>
+                  ) : (
+                    <div className="space-y-2">
+                      <span className="text-[10px] font-mono text-indigo-300 font-bold uppercase tracking-wider block font-black">Deals 2x Damage Against</span>
+                      <div className="flex flex-wrap gap-1.5">
+                        {strengths.map((t) => (
+                          <TypeBadge key={t} type={t} size="sm" showIcon={false} />
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
-
-            {viewMode === 'chart' && (
-              <div className="p-5 grid md:grid-cols-2 gap-6">
-                {/* Offense */}
-                <div>
-                  <h3 className="font-bold text-sm mb-3 uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>
-                    ⚔️ Attacking from {capitalize(selected)}
-                  </h3>
-                  <div className="space-y-2">
-                    <div>
-                      <div className="text-xs text-green-400 font-semibold mb-1.5">Super Effective (×2)</div>
-                      <div className="flex flex-wrap gap-1.5">
-                        {ALL_TYPES.filter((t) => getMultiplier(selected, t) === 2).map((t) => <TypeBadge key={t} type={t} size="sm" />)}
-                        {ALL_TYPES.filter((t) => getMultiplier(selected, t) === 2).length === 0 && <span className="text-xs text-gray-500">None</span>}
-                      </div>
-                    </div>
-                    <div>
-                      <div className="text-xs text-red-400 font-semibold mb-1.5 mt-2">Not Very Effective (×½)</div>
-                      <div className="flex flex-wrap gap-1.5">
-                        {ALL_TYPES.filter((t) => getMultiplier(selected, t) === 0.5).map((t) => <TypeBadge key={t} type={t} size="sm" />)}
-                        {ALL_TYPES.filter((t) => getMultiplier(selected, t) === 0.5).length === 0 && <span className="text-xs text-gray-500">None</span>}
-                      </div>
-                    </div>
-                    <div>
-                      <div className="text-xs text-gray-500 font-semibold mb-1.5 mt-2">No Effect (×0)</div>
-                      <div className="flex flex-wrap gap-1.5">
-                        {ALL_TYPES.filter((t) => getMultiplier(selected, t) === 0).map((t) => <TypeBadge key={t} type={t} size="sm" />)}
-                        {ALL_TYPES.filter((t) => getMultiplier(selected, t) === 0).length === 0 && <span className="text-xs text-gray-500">None</span>}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Defense */}
-                <div>
-                  <h3 className="font-bold text-sm mb-3 uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>
-                    🛡️ Defending as {capitalize(selected)}
-                  </h3>
-                  <div className="space-y-2">
-                    <div>
-                      <div className="text-xs text-red-400 font-semibold mb-1.5">Weak To (×2)</div>
-                      <div className="flex flex-wrap gap-1.5">
-                        {ALL_TYPES.filter((t) => getMultiplier(t, selected) === 2).map((t) => <TypeBadge key={t} type={t} size="sm" />)}
-                        {ALL_TYPES.filter((t) => getMultiplier(t, selected) === 2).length === 0 && <span className="text-xs text-gray-500">None</span>}
-                      </div>
-                    </div>
-                    <div>
-                      <div className="text-xs text-green-400 font-semibold mb-1.5 mt-2">Resistant To (×½)</div>
-                      <div className="flex flex-wrap gap-1.5">
-                        {ALL_TYPES.filter((t) => getMultiplier(t, selected) === 0.5).map((t) => <TypeBadge key={t} type={t} size="sm" />)}
-                        {ALL_TYPES.filter((t) => getMultiplier(t, selected) === 0.5).length === 0 && <span className="text-xs text-gray-500">None</span>}
-                      </div>
-                    </div>
-                    <div>
-                      <div className="text-xs text-gray-500 font-semibold mb-1.5 mt-2">Immune To (×0)</div>
-                      <div className="flex flex-wrap gap-1.5">
-                        {ALL_TYPES.filter((t) => getMultiplier(t, selected) === 0).map((t) => <TypeBadge key={t} type={t} size="sm" />)}
-                        {ALL_TYPES.filter((t) => getMultiplier(t, selected) === 0).length === 0 && <span className="text-xs text-gray-500">None</span>}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {viewMode === 'pokemon' && (
-              <div className="p-5">
-                <p className="text-xs mb-4" style={{ color: 'var(--text-muted)' }}>
-                  Showing 12 of {typeData.pokemon.length} {capitalize(selected)}-type Pokémon
-                </p>
-                {loadingTypePokemon ? (
-                  <div className="flex items-center justify-center py-16">
-                    <div className="pokeball-spinner w-10 h-10" />
-                  </div>
-                ) : (
-                  <div className="pokemon-grid">
-                    {typePokemon?.map((p) => (
-                      <PokemonCard
-                        key={p.id}
-                        id={p.id}
-                        name={p.name}
-                        types={p.types.map((t) => t.type.name)}
-                      />
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* Full 18×18 type chart */}
-      <motion.div
-        initial={{ opacity: 0, y: 30 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.2 }}
-        className="glass-card rounded-2xl overflow-hidden"
-      >
-        <div className="p-4 border-b border-white/5">
-          <h2 className="font-bold">Full Type Effectiveness Chart</h2>
-          <p className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>
-            Rows = Attacking type · Columns = Defending type
-            <span className="ml-3 text-green-400">■ ×2</span>
-            <span className="ml-2 text-red-400">■ ×½</span>
-            <span className="ml-2 text-gray-500">■ ×0</span>
-          </p>
+      {/* 3. Professional Interactive Type Matrix Chart */}
+      <div className="glass-card p-6 rounded-3xl border border-white/5 relative overflow-hidden">
+        <div className="border-b border-white/5 pb-4 mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <h2 className="text-xl font-black text-white flex items-center gap-2" style={{ fontFamily: 'var(--font-display)' }}>
+              <FiSliders /> Type Effectiveness Matrix
+            </h2>
+            <p className="text-xs text-gray-500 mt-0.5">
+              Interactive relationship grid: rows represent attacker types; columns represent defender types.
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-3 text-[10px] font-mono text-gray-400">
+            <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded bg-emerald-500/30 border border-emerald-500/35" /> 2x / 4x Super Effective</div>
+            <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded bg-rose-500/25 border border-rose-500/30" /> ½x / ¼x Not Effective</div>
+            <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded bg-gray-600/40 border border-gray-600/35" /> 0x Immune</div>
+          </div>
         </div>
-        <div className="overflow-x-auto">
-          <table className="text-xs border-collapse" style={{ minWidth: 700 }}>
+
+        <div className="overflow-x-auto scrollbar-thin">
+          <table className="text-[10px] border-collapse w-full relative" style={{ minWidth: 680 }}>
             <thead>
-              <tr>
-                <th className="p-1.5 text-left sticky left-0 z-10" style={{ background: 'var(--bg-secondary)', minWidth: 64 }}>
-                  <span style={{ color: 'var(--text-muted)', fontSize: '0.6rem' }}>ATK ↓ DEF →</span>
+              <tr className="bg-white/[0.01]">
+                <th className="p-2 text-left sticky left-0 z-20 bg-[#070710] border-r border-white/5" style={{ minWidth: 85 }}>
+                  <span className="text-[9px] font-mono text-gray-500 font-bold">ATK ➔ / DEF ➔</span>
                 </th>
-                {ALL_TYPES.map((t) => (
-                  <th key={t} className="p-1" style={{ minWidth: 32 }}>
-                    <div title={capitalize(t)} className="w-6 h-6 rounded-full mx-auto flex items-center justify-center text-xs"
-                      style={{ background: TYPE_COLORS[t]?.bg, color: TYPE_COLORS[t]?.text, fontSize: '0.6rem', fontWeight: 700 }}>
-                      {t.slice(0, 2).toUpperCase()}
-                    </div>
-                  </th>
-                ))}
+                {ALL_TYPES.map((t) => {
+                  const isHovered = hoveredCol === t
+                  const isSelected = selectedTypes.includes(t)
+                  return (
+                    <th
+                      key={t}
+                      className="p-1 text-center select-none"
+                      onMouseEnter={() => setHoveredCol(t)}
+                      onMouseLeave={() => setHoveredCol(null)}
+                    >
+                      <div
+                        title={capitalize(t)}
+                        className={`w-7 h-7 rounded-lg mx-auto flex items-center justify-center font-bold text-[8.5px] transition-all border ${
+                          isSelected
+                            ? 'border-white text-white font-black scale-105 shadow'
+                            : isHovered
+                            ? 'border-white/20 opacity-100 scale-102'
+                            : 'border-white/5 opacity-80'
+                        }`}
+                        style={{
+                          background: TYPE_COLORS[t]?.bg,
+                          color: TYPE_COLORS[t]?.text,
+                          boxShadow: isSelected ? `0 0 10px ${TYPE_COLORS[t]?.glow}` : undefined,
+                        }}
+                      >
+                        {t.slice(0, 2).toUpperCase()}
+                      </div>
+                    </th>
+                  )
+                })}
               </tr>
             </thead>
             <tbody>
-              {ALL_TYPES.map((atk) => (
-                <tr key={atk} className={selected === atk ? 'ring-1 ring-white/20' : ''}>
-                  <td
-                    className="p-1.5 font-bold sticky left-0 z-10 cursor-pointer"
-                    style={{ background: selected === atk ? `${TYPE_COLORS[atk]?.bg}30` : 'var(--bg-secondary)', minWidth: 64 }}
-                    onClick={() => { setSelected(selected === atk ? null : atk); soundService.play('click') }}
+              {ALL_TYPES.map((atk) => {
+                const isRowHovered = hoveredRow === atk
+                const isSelectedAtk = selectedTypes.includes(atk)
+                return (
+                  <tr
+                    key={atk}
+                    className={`border-b border-white/5 transition-colors ${
+                      isSelectedAtk
+                        ? 'bg-indigo-500/10'
+                        : isRowHovered
+                        ? 'bg-white/[0.02]'
+                        : ''
+                    }`}
+                    onMouseEnter={() => setHoveredRow(atk)}
+                    onMouseLeave={() => setHoveredRow(null)}
                   >
-                    <div className="flex items-center gap-1">
-                      <span>{TYPE_EMOJI[atk]}</span>
-                      <span style={{ color: TYPE_COLORS[atk]?.bg, fontSize: '0.65rem' }}>{capitalize(atk)}</span>
-                    </div>
-                  </td>
-                  {ALL_TYPES.map((def) => {
-                    const m = getMultiplier(atk, def)
-                    const { bg, text } = cellColor(m)
-                    return (
-                      <td key={def} className="p-0.5 text-center" title={`${capitalize(atk)} → ${capitalize(def)}: ×${m}`}>
-                        <div
-                          className="w-7 h-7 rounded flex items-center justify-center text-xs font-bold mx-auto"
-                          style={{ background: bg, color: text, fontSize: '0.6rem' }}
+                    {/* Attacking Row Header */}
+                    <td
+                      className="p-1.5 font-bold sticky left-0 z-10 bg-[#070710] border-r border-white/5 cursor-pointer hover:bg-white/5"
+                      onClick={() => handleToggleType(atk)}
+                    >
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-sm select-none">{TYPE_EMOJI[atk]}</span>
+                        <span
+                          className="font-bold text-[10px] tracking-wide"
+                          style={{ color: TYPE_COLORS[atk]?.bg }}
                         >
-                          {m === 1 ? '' : m === 0 ? '0' : m === 2 ? '2' : '½'}
-                        </div>
-                      </td>
-                    )
-                  })}
-                </tr>
-              ))}
+                          {capitalize(atk)}
+                        </span>
+                      </div>
+                    </td>
+
+                    {/* Matrix Cells */}
+                    {ALL_TYPES.map((def) => {
+                      const m = getMultiplier(atk, def, null)
+                      const { bg, text, label } = cellColor(m)
+                      const isColHovered = hoveredCol === def
+                      const isCellActive = selectedTypes.includes(def) || selectedTypes.includes(atk)
+                      
+                      return (
+                        <td
+                          key={def}
+                          className={`p-0.5 text-center transition-all ${
+                            isColHovered ? 'bg-white/[0.015]' : ''
+                          }`}
+                          title={`${capitalize(atk)} ➔ ${capitalize(def)}: ×${m}`}
+                        >
+                          <div
+                            className={`w-7 h-7 rounded-md flex items-center justify-center font-mono text-[9px] font-bold mx-auto transition-transform ${
+                              isColHovered || isRowHovered ? 'scale-105' : ''
+                            } ${isCellActive ? 'ring-1 ring-white/5' : ''}`}
+                            style={{
+                              background: bg,
+                              color: text,
+                            }}
+                          >
+                            {label}
+                          </div>
+                        </td>
+                      )
+                    })}
+                  </tr>
+                )
+              })}
             </tbody>
           </table>
         </div>
-      </motion.div>
+      </div>
     </div>
   )
 }

@@ -13,6 +13,7 @@ interface SearchBarProps {
   placeholder?: string
   className?: string
   expandable?: boolean
+  large?: boolean
 }
 
 const SearchBar: React.FC<SearchBarProps> = ({
@@ -20,6 +21,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
   placeholder = 'Search Pokémon by name or number...',
   className = '',
   expandable = false,
+  large = false,
 }) => {
   const [query, setQuery] = useState('')
   const [focused, setFocused] = useState(false)
@@ -67,9 +69,9 @@ const SearchBar: React.FC<SearchBarProps> = ({
         animate={{ width: expandable && !focused ? '48px' : '100%' }}
         className="relative"
       >
-        <div className={`relative flex items-center glass rounded-2xl border transition-all duration-300 ${focused ? 'border-indigo-500/60 shadow-lg shadow-indigo-500/20' : 'border-white/10'}`}>
-          <div className="pl-4 flex items-center justify-center text-gray-400 pointer-events-none flex-shrink-0">
-            <FiSearch size={18} />
+        <div className={`relative flex items-center glass transition-all duration-300 ${focused ? 'border-indigo-500/60 shadow-lg shadow-indigo-500/20' : 'border-white/10'} ${large ? 'rounded-2xl border' : 'rounded-2xl border'}`}>
+          <div className={`${large ? 'pl-5' : 'pl-4'} flex items-center justify-center text-gray-400 pointer-events-none flex-shrink-0`}>
+            <FiSearch size={large ? 20 : 18} />
           </div>
           <input
             ref={inputRef}
@@ -80,14 +82,17 @@ const SearchBar: React.FC<SearchBarProps> = ({
             onBlur={() => setTimeout(() => setFocused(false), 200)}
             onKeyDown={handleKeyDown}
             placeholder={placeholder}
-            className="flex-1 bg-transparent pl-3 pr-10 py-3.5 text-sm outline-none placeholder:text-gray-500 font-medium"
+            className={`flex-1 bg-transparent outline-none placeholder:text-gray-500 font-medium ${large ? 'pl-4 pr-12 py-5 text-base' : 'pl-3 pr-10 py-3.5 text-sm'}`}
             aria-label="Search Pokémon"
             aria-autocomplete="list"
             autoComplete="off"
           />
           {query && (
-            <button onClick={() => { setQuery(''); onSearch?.('') }} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white transition-colors">
-              <FiX size={16} />
+            <button
+              onClick={() => { setQuery(''); onSearch?.('') }}
+              className={`absolute top-1/2 -translate-y-1/2 text-gray-400 hover:text-white transition-colors ${large ? 'right-5' : 'right-4'}`}
+            >
+              <FiX size={large ? 18 : 16} />
             </button>
           )}
         </div>

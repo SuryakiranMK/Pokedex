@@ -5,7 +5,7 @@ import { FiHeart } from 'react-icons/fi'
 import { FaHeart } from 'react-icons/fa'
 import { LazyLoadImage } from 'react-lazy-load-image-component'
 import TypeBadge from '../ui/TypeBadge'
-import { useFavoritesStore, useTeamStore } from '../../store'
+import { useFavoritesStore, useTeamStore, useModalStore } from '../../store'
 import { TYPE_COLORS } from '../../utils/constants'
 import { formatPokemonId, capitalize } from '../../utils/helpers'
 import { getPokemonArtwork, fetchPokemon } from '../../api/pokemon'
@@ -59,8 +59,11 @@ const PokemonCard: React.FC<PokemonCardProps> = ({ id, name, types, height, weig
     }
 
     if (currentTeam.length >= teamSize) {
-      soundService.play('error')
-      alert(`Your team is full! Max team size is ${teamSize}.`)
+      useModalStore.getState().openModal(
+        'Team is Full',
+        `Your current battle team already contains the maximum limit of ${teamSize} Pokémon. Please remove an existing member from the Team Builder before adding another.`,
+        'warning'
+      )
       return
     }
 

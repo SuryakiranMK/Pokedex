@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import type { TeamPokemon, SavedTeam } from '../types'
+import { soundService } from '../services/sound'
 
 interface FavoritesStore {
   favorites: number[]
@@ -133,3 +134,31 @@ export const useUIStore = create<UIStore>()(
     { name: 'pokedex-ui' }
   )
 )
+
+interface ModalStore {
+  isOpen: boolean
+  title: string
+  message: string
+  type: 'info' | 'warning' | 'error'
+  openModal: (title: string, message: string, type?: 'info' | 'warning' | 'error') => void
+  closeModal: () => void
+}
+
+export const useModalStore = create<ModalStore>((set) => ({
+  isOpen: false,
+  title: '',
+  message: '',
+  type: 'info',
+  openModal: (title, message, type = 'info') => {
+    if (type === 'error') {
+      soundService.play('error')
+    } else {
+      soundService.play('click')
+    }
+    set({ isOpen: true, title, message, type })
+  },
+  closeModal: () => {
+    soundService.play('click')
+    set({ isOpen: false })
+  },
+}))

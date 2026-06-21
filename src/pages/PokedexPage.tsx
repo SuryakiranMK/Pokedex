@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { useSearchParams } from 'react-router-dom'
 import { FiGrid, FiList, FiFilter, FiX, FiChevronDown } from 'react-icons/fi'
 import { useInView } from 'react-intersection-observer'
 import PokemonCard from '../components/pokemon/PokemonCard'
@@ -37,12 +38,53 @@ const SkeletonCard = () => (
 )
 
 const PokedexPage: React.FC = () => {
+  const [searchParams, setSearchParams] = useSearchParams()
   const [filters, setFilters] = useState<FilterState>(defaultFilters)
   const [showFilters, setShowFilters] = useState(false)
   const [loaderBall, setLoaderBall] = useState('pokeball-spinner')
+
+  // Parse parameters if passed via URL
+  useEffect(() => {
+    const regionParam = searchParams.get('region')
+    const typesParam = searchParams.get('types')
+    
+    let needsUpdate = false
+    let nextGens = [...filters.generations]
+    let nextTypes = [...filters.types]
+    
+    if (regionParam) {
+      const regionData = REGIONS.find((r) => r.id === regionParam.toLowerCase())
+      if (regionData) {
+        if (nextGens.length !== 1 || nextGens[0] !== regionData.generation) {
+          nextGens = [regionData.generation]
+          needsUpdate = true
+        }
+      }
+    }
+    
+    if (typesParam) {
+      const types = typesParam.split(',').map(t => t.trim().toLowerCase()).filter(t => ALL_TYPES.includes(t))
+      if (types.length > 0) {
+        const isSame = nextTypes.length === types.length && nextTypes.every(t => types.includes(t))
+        if (!isSame) {
+          nextTypes = types
+          needsUpdate = true
+        }
+      }
+    }
+    
+    if (needsUpdate) {
+      setFilters(f => ({
+        ...f,
+        generations: nextGens,
+        types: nextTypes,
+      }))
+      setShowFilters(true) // Automatically open the filter drawer!
+    }
+  }, [searchParams, filters.generations, filters.types])
   const { ref: sentinelRef, inView } = useInView({ threshold: 0 })
 
-  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } = usePokemonInfinite(24)
+  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } = usePokemonInfinite(24, filters.generations)
 
   // Fetch full pokemon data for each entry
   const allEntries = data?.pages.flatMap((p) => p.results) ?? []

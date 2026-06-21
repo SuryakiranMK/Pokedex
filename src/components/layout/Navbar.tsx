@@ -85,9 +85,9 @@ const Navbar: React.FC = () => {
         animate={{ y: 0 }}
         transition={{ type: 'spring', stiffness: 260, damping: 20 }}
       >
-        <div className="max-w-7xl mx-auto pl-6 pr-4 h-16 flex items-center justify-between gap-4">
+        <div className="max-w-7xl mx-auto pl-8 pr-6 h-20 flex items-center justify-between gap-6">
           {/* Logo */}
-          <Link to="/" className="flex items-center gap-2 flex-shrink-0" onClick={() => soundService.play('navigation')}>
+          <Link to="/" className="flex items-center gap-2.5 flex-shrink-0" onClick={() => soundService.play('navigation')}>
             <img
               src={getPokemonArtwork(pikachuId)}
               alt="Pikachu Mascot"
@@ -95,29 +95,29 @@ const Navbar: React.FC = () => {
               style={{ filter: 'drop-shadow(0 0 6px rgba(248, 208, 48, 0.8))' }}
               onMouseEnter={handlePikachuHover}
             />
-            <span className="font-black text-xl tracking-tight gradient-text" style={{ fontFamily: 'var(--font-display)' }}>
+            <span className="font-black text-2xl tracking-tight gradient-text" style={{ fontFamily: 'var(--font-display)' }}>
               PokéDex
             </span>
           </Link>
 
           {/* Desktop nav */}
-          <div className="hidden lg:flex items-center gap-2 xl:gap-4">
+          <div className="hidden lg:flex items-center gap-4 xl:gap-6">
             {NAV_LINKS.map(({ path, label, icon: Icon }) => (
               <Link
                 key={path}
                 to={path}
                 onClick={() => soundService.play('navigation')}
-                className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-sm font-medium transition-all ${isActive(path) ? 'nav-active' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}
+                className={`flex items-center gap-2.5 px-4.5 py-2.5 rounded-xl text-base font-semibold transition-all ${isActive(path) ? 'nav-active' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}
               >
-                <Icon size={14} />
+                <Icon size={15} />
                 {label}
               </Link>
             ))}
           </div>
 
           {/* Right controls */}
-          <div className="flex items-center gap-2">
-            <div className="hidden md:block w-56">
+          <div className="flex items-center gap-3">
+            <div className="hidden md:block w-64">
               <SearchBar placeholder="Search..." />
             </div>
             <button
@@ -150,7 +150,7 @@ const Navbar: React.FC = () => {
               onClick={() => setMobileOpen(false)}
             />
             <motion.div
-              className="fixed top-16 left-0 right-0 z-30 glass-dark border-b border-white/10 p-4 lg:hidden"
+              className="fixed top-20 left-0 right-0 z-30 glass-dark border-b border-white/10 p-4 lg:hidden"
               initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}

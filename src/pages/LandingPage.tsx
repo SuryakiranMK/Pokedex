@@ -6,7 +6,7 @@ import SearchBar from '../components/ui/SearchBar'
 import TypeBadge from '../components/ui/TypeBadge'
 import { getPokemonArtwork } from '../api/pokemon'
 import { fetchPokemon } from '../api/pokemon'
-import { FEATURED_POKEMON, TYPE_COLORS } from '../utils/constants'
+import { FEATURED_POKEMON, TYPE_COLORS, REGIONS } from '../utils/constants'
 import { capitalize } from '../utils/helpers'
 import { soundService } from '../services/sound'
 
@@ -92,33 +92,133 @@ const AnimatedCounter: React.FC<{ end: number; duration?: number; label: string 
   )
 }
 
-// ── Featured Pokémon Carousel ─────────────────────────────
-const FeaturedCarousel: React.FC = () => {
+const CATEGORIES = [
+  { id: 'overall', name: 'Overall', color: '#6366F1' },
+  { id: 'kanto', name: 'Kanto', color: '#FF5252' },
+  { id: 'johto', name: 'Johto', color: '#7C4DFF' },
+  { id: 'hoenn', name: 'Hoenn', color: '#00BCD4' },
+  { id: 'sinnoh', name: 'Sinnoh', color: '#4CAF50' },
+  { id: 'unova', name: 'Unova', color: '#FF9800' },
+  { id: 'kalos', name: 'Kalos', color: '#E91E63' },
+  { id: 'alola', name: 'Alola', color: '#FF6F00' },
+  { id: 'galar', name: 'Galar', color: '#1565C0' },
+  { id: 'paldea', name: 'Paldea', color: '#6A1B9A' },
+]
+
+const POKEMON_OF_THE_YEAR: Record<string, { id: number; name: string; region: string; rank: number; votes: number }[]> = {
+  overall: [
+    { id: 658, name: 'greninja', region: 'Kalos', rank: 1, votes: 140559 },
+    { id: 448, name: 'lucario', region: 'Sinnoh', rank: 2, votes: 102259 },
+    { id: 778, name: 'mimikyu', region: 'Alola', rank: 3, votes: 99077 },
+    { id: 6, name: 'charizard', region: 'Kanto', rank: 4, votes: 93968 },
+    { id: 197, name: 'umbreon', region: 'Johto', rank: 5, votes: 67062 },
+  ],
+  kanto: [
+    { id: 6, name: 'charizard', region: 'Kanto', rank: 1, votes: 93968 },
+    { id: 94, name: 'gengar', region: 'Kanto', rank: 2, votes: 60214 },
+    { id: 1, name: 'bulbasaur', region: 'Kanto', rank: 3, votes: 54246 },
+    { id: 25, name: 'pikachu', region: 'Kanto', rank: 4, votes: 37321 },
+    { id: 133, name: 'eevee', region: 'Kanto', rank: 5, votes: 31001 },
+  ],
+  johto: [
+    { id: 197, name: 'umbreon', region: 'Johto', rank: 1, votes: 67062 },
+    { id: 248, name: 'tyranitar', region: 'Johto', rank: 2, votes: 56834 },
+    { id: 249, name: 'lugia', region: 'Johto', rank: 3, votes: 53268 },
+    { id: 157, name: 'typhlosion', region: 'Johto', rank: 4, votes: 38412 },
+    { id: 212, name: 'scizor', region: 'Johto', rank: 5, votes: 34651 },
+  ],
+  hoenn: [
+    { id: 384, name: 'rayquaza', region: 'Hoenn', rank: 1, votes: 60939 },
+    { id: 282, name: 'gardevoir', region: 'Hoenn', rank: 2, votes: 60596 },
+    { id: 330, name: 'flygon', region: 'Hoenn', rank: 3, votes: 41288 },
+    { id: 254, name: 'sceptile', region: 'Hoenn', rank: 4, votes: 38724 },
+    { id: 257, name: 'blaziken', region: 'Hoenn', rank: 5, votes: 36811 },
+  ],
+  sinnoh: [
+    { id: 448, name: 'lucario', region: 'Sinnoh', rank: 1, votes: 102259 },
+    { id: 445, name: 'garchomp', region: 'Sinnoh', rank: 2, votes: 61877 },
+    { id: 405, name: 'luxray', region: 'Sinnoh', rank: 3, votes: 46253 },
+    { id: 393, name: 'piplup', region: 'Sinnoh', rank: 4, votes: 38229 },
+    { id: 390, name: 'infernape', region: 'Sinnoh', rank: 5, votes: 37441 },
+  ],
+  unova: [
+    { id: 609, name: 'chandelure', region: 'Unova', rank: 1, votes: 50943 },
+    { id: 571, name: 'zoroark', region: 'Unova', rank: 2, votes: 46271 },
+    { id: 635, name: 'hydreigon', region: 'Unova', rank: 3, votes: 40122 },
+    { id: 637, name: 'volcarona', region: 'Unova', rank: 4, votes: 37882 },
+    { id: 612, name: 'haxorus', region: 'Unova', rank: 5, votes: 34229 },
+  ],
+  kalos: [
+    { id: 658, name: 'greninja', region: 'Kalos', rank: 1, votes: 140559 },
+    { id: 700, name: 'sylveon', region: 'Kalos', rank: 2, votes: 66029 },
+    { id: 681, name: 'aegislash', region: 'Kalos', rank: 3, votes: 30221 },
+    { id: 715, name: 'noivern', region: 'Kalos', rank: 4, votes: 22821 },
+    { id: 706, name: 'goodra', region: 'Kalos', rank: 5, votes: 20110 },
+  ],
+  alola: [
+    { id: 778, name: 'mimikyu', region: 'Alola', rank: 1, votes: 99077 },
+    { id: 722, name: 'rowlet', region: 'Alola', rank: 2, votes: 34112 },
+    { id: 724, name: 'decidueye', region: 'Alola', rank: 3, votes: 28221 },
+    { id: 745, name: 'lycanroc', region: 'Alola', rank: 4, votes: 25110 },
+    { id: 807, name: 'zeraora', region: 'Alola', rank: 5, votes: 22881 },
+  ],
+  galar: [
+    { id: 887, name: 'dragapult', region: 'Galar', rank: 1, votes: 57973 },
+    { id: 849, name: 'toxtricity', region: 'Galar', rank: 2, votes: 38221 },
+    { id: 823, name: 'corviknight', region: 'Galar', rank: 3, votes: 35110 },
+    { id: 872, name: 'snom', region: 'Galar', rank: 4, votes: 31220 },
+    { id: 869, name: 'alcremie', region: 'Galar', rank: 5, votes: 28110 },
+  ],
+  paldea: [
+    { id: 959, name: 'tinkaton', region: 'Paldea', rank: 1, votes: 78210 },
+    { id: 937, name: 'ceruledge', region: 'Paldea', rank: 2, votes: 65110 },
+    { id: 908, name: 'meowscarada', region: 'Paldea', rank: 3, votes: 54112 },
+    { id: 1008, name: 'miraidon', region: 'Paldea', rank: 4, votes: 48110 },
+    { id: 1007, name: 'koraidon', region: 'Paldea', rank: 5, votes: 45110 },
+  ],
+}
+
+// ── Pokémon of the Year Carousel ─────────────────────────
+const PokemonOfTheYearCarousel: React.FC = () => {
+  const [activeRegion, setActiveRegion] = useState('overall')
   const [current, setCurrent] = useState(0)
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
-  const featured = FEATURED_POKEMON
+  const featured = POKEMON_OF_THE_YEAR[activeRegion] || []
 
   const { data: pokemon } = useQuery({
-    queryKey: ['pokemon', featured[current].name],
-    queryFn: () => fetchPokemon(featured[current].name),
+    queryKey: ['pokemon', featured[current]?.name],
+    queryFn: () => fetchPokemon(featured[current]?.name),
     staleTime: 1000 * 60 * 30,
+    enabled: featured.length > 0 && !!featured[current]?.name,
   })
 
   const startAutoSlide = () => {
+    if (intervalRef.current) clearInterval(intervalRef.current)
     intervalRef.current = setInterval(() => {
-      setCurrent((c) => (c + 1) % featured.length)
-    }, 4000)
+      setCurrent((c) => {
+        if (c >= featured.length - 1) {
+          // Go to next category
+          setActiveRegion((r) => {
+            const idx = CATEGORIES.findIndex((cat) => cat.id === r)
+            const nextIdx = (idx + 1) % CATEGORIES.length
+            return CATEGORIES[nextIdx].id
+          })
+          return 0
+        }
+        return c + 1
+      })
+    }, 5000)
   }
 
   useEffect(() => {
+    setCurrent(0)
     startAutoSlide()
     return () => { if (intervalRef.current) clearInterval(intervalRef.current) }
-  }, [])
+  }, [activeRegion])
 
   const goTo = (idx: number) => {
     setCurrent(idx)
-    if (intervalRef.current) clearInterval(intervalRef.current)
     startAutoSlide()
     soundService.play('click')
   }
@@ -132,6 +232,32 @@ const FeaturedCarousel: React.FC = () => {
       className="glass-card overflow-hidden relative"
       style={{ boxShadow: `0 0 60px ${typeColor.glow}, 0 25px 50px rgba(0,0,0,0.5)` }}
     >
+      {/* Category Tabs */}
+      <div className="flex flex-wrap items-center justify-center gap-1.5 md:gap-2.5 p-4 md:p-6 border-b border-white/5 bg-black/10">
+        {CATEGORIES.map((cat) => {
+          const isActive = activeRegion === cat.id
+          return (
+            <button
+              key={cat.id}
+              onClick={() => {
+                setActiveRegion(cat.id)
+                soundService.play('click')
+              }}
+              className={`px-3 py-1.5 md:px-4 md:py-2 rounded-xl text-xs md:text-sm font-black capitalize transition-all duration-300 border cursor-pointer ${isActive
+                ? 'text-white border-white/20 shadow-lg'
+                : 'border-transparent text-gray-400 hover:text-white hover:bg-white/5'
+                }`}
+              style={{
+                background: isActive ? `linear-gradient(135deg, ${cat.color}cc, ${cat.color})` : undefined,
+                boxShadow: isActive ? `0 4px 14px ${cat.color}40` : undefined,
+              }}
+            >
+              {cat.name}
+            </button>
+          )
+        })}
+      </div>
+
       {/* Ambient glow bg */}
       <motion.div
         className="absolute inset-0 opacity-20 transition-all duration-700 pointer-events-none"
@@ -142,76 +268,86 @@ const FeaturedCarousel: React.FC = () => {
       />
 
       <div className="relative z-10 flex flex-col md:flex-row items-center gap-8 p-8 md:p-10">
-        <motion.div
-          key={feat.id}
-          initial={{ opacity: 0, scale: 0.7, rotate: -8 }}
-          animate={{ opacity: 1, scale: 1, rotate: 0 }}
-          transition={{ type: 'spring', stiffness: 200, damping: 18 }}
-          className="flex-shrink-0"
-        >
-          <img
-            src={getPokemonArtwork(feat.id)}
-            alt={feat.name}
-            className="w-44 h-44 md:w-64 md:h-64 object-contain drop-shadow-2xl float"
-            style={{ filter: `drop-shadow(0 10px 40px ${typeColor.glow})` }}
-          />
-        </motion.div>
-
-        <motion.div
-          key={`info-${feat.id}`}
-          initial={{ opacity: 0, x: 30 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: 0.15, duration: 0.4 }}
-          className="flex-1 text-left"
-        >
-          <div className="text-xs font-mono mb-3 tracking-widest uppercase" style={{ color: typeColor.bg }}>
-            #{String(feat.id).padStart(4, '0')} · {feat.region}
-          </div>
-          <h3
-            className="text-4xl md:text-5xl font-black capitalize mb-4"
-            style={{ fontFamily: 'var(--font-display)', color: 'var(--text-primary)' }}
+        {feat && (
+          <motion.div
+            key={feat.id}
+            initial={{ opacity: 0, scale: 0.7, rotate: -8 }}
+            animate={{ opacity: 1, scale: 1, rotate: 0 }}
+            transition={{ type: 'spring', stiffness: 200, damping: 18 }}
+            className="flex-shrink-0"
           >
-            {capitalize(feat.name)}
-          </h3>
-          <div className="flex flex-wrap gap-2 mb-6">
-            {(pokemon?.types ?? []).map((t) => (
-              <TypeBadge key={t.type.name} type={t.type.name} size="md" />
-            ))}
-          </div>
-          {pokemon && (
-            <div className="grid grid-cols-3 gap-3 mb-6">
-              {[
-                { label: 'HP', val: pokemon.stats.find(s => s.stat.name === 'hp')?.base_stat ?? '—' },
-                { label: 'ATK', val: pokemon.stats.find(s => s.stat.name === 'attack')?.base_stat ?? '—' },
-                { label: 'SPD', val: pokemon.stats.find(s => s.stat.name === 'speed')?.base_stat ?? '—' },
-              ].map(({ label, val }) => (
-                <div
-                  key={label}
-                  className="rounded-xl px-3 py-2 text-center"
-                  style={{ background: `${typeColor.bg}20`, border: `1px solid ${typeColor.bg}40` }}
-                >
-                  <div className="text-xs font-mono mb-0.5" style={{ color: typeColor.bg }}>{label}</div>
-                  <div className="text-lg font-black" style={{ color: 'var(--text-primary)' }}>{val}</div>
-                </div>
+            <img
+              src={getPokemonArtwork(feat.id)}
+              alt={feat.name}
+              className="w-44 h-44 md:w-64 md:h-64 object-contain drop-shadow-2xl float"
+              style={{ filter: `drop-shadow(0 10px 40px ${typeColor.glow})` }}
+            />
+          </motion.div>
+        )}
+
+        {feat && (
+          <motion.div
+            key={`info-${feat.id}`}
+            initial={{ opacity: 0, x: 30 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.15, duration: 0.4 }}
+            className="flex-1 text-left"
+          >
+            <div className="text-xs font-mono mb-3 tracking-widest uppercase flex flex-wrap items-center gap-2" style={{ color: typeColor.bg }}>
+              <span className="px-2.5 py-0.5 rounded-lg bg-amber-500/20 text-amber-300 font-bold border border-amber-500/35">
+                🏆 Rank #{feat.rank}
+              </span>
+              <span className="text-gray-500 font-bold">·</span>
+              <span className="text-white font-bold">{feat.votes.toLocaleString()} Votes</span>
+              <span className="text-gray-500 font-bold">·</span>
+              <span>#{String(feat.id).padStart(4, '0')} · {feat.region}</span>
+            </div>
+            <h3
+              className="text-4xl md:text-5xl font-black capitalize mb-4"
+              style={{ fontFamily: 'var(--font-display)', color: 'var(--text-primary)' }}
+            >
+              {capitalize(feat.name)}
+            </h3>
+            <div className="flex flex-wrap gap-2 mb-6">
+              {(pokemon?.types ?? []).map((t) => (
+                <TypeBadge key={t.type.name} type={t.type.name} size="md" />
               ))}
             </div>
-          )}
-          <Link
-            to={`/pokemon/${feat.name}`}
-            className="inline-flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-bold transition-all hover:scale-105 active:scale-95"
-            style={{
-              background: `linear-gradient(135deg, ${typeColor.bg}, ${typeColor.bg}cc)`,
-              color: typeColor.text,
-              boxShadow: `0 6px 24px ${typeColor.glow}`,
-            }}
-            onClick={() => soundService.play('navigation')}
-          >
-            View Details
-            <svg viewBox="0 0 20 20" fill="currentColor" width="14" height="14">
-              <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
-            </svg>
-          </Link>
-        </motion.div>
+            {pokemon && (
+              <div className="grid grid-cols-3 gap-3 mb-6">
+                {[
+                  { label: 'HP', val: pokemon.stats.find(s => s.stat.name === 'hp')?.base_stat ?? '—' },
+                  { label: 'ATK', val: pokemon.stats.find(s => s.stat.name === 'attack')?.base_stat ?? '—' },
+                  { label: 'SPD', val: pokemon.stats.find(s => s.stat.name === 'speed')?.base_stat ?? '—' },
+                ].map(({ label, val }) => (
+                  <div
+                    key={label}
+                    className="rounded-xl px-3 py-2 text-center"
+                    style={{ background: `${typeColor.bg}20`, border: `1px solid ${typeColor.bg}40` }}
+                  >
+                    <div className="text-xs font-mono mb-0.5" style={{ color: typeColor.bg }}>{label}</div>
+                    <div className="text-lg font-black" style={{ color: 'var(--text-primary)' }}>{val}</div>
+                  </div>
+                ))}
+              </div>
+            )}
+            <Link
+              to={`/pokemon/${feat.name}`}
+              className="inline-flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-bold transition-all hover:scale-105 active:scale-95"
+              style={{
+                background: `linear-gradient(135deg, ${typeColor.bg}, ${typeColor.bg}cc)`,
+                color: typeColor.text,
+                boxShadow: `0 6px 24px ${typeColor.glow}`,
+              }}
+              onClick={() => soundService.play('navigation')}
+            >
+              View Details
+              <svg viewBox="0 0 20 20" fill="currentColor" width="14" height="14">
+                <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
+              </svg>
+            </Link>
+          </motion.div>
+        )}
       </div>
 
       {/* Dots */}
@@ -299,13 +435,77 @@ const QUICK_NAV = [
   },
 ]
 
+// ── Showcase Characters ──────────────────────────────────
+const SHOWCASE_CHARACTERS = [
+  {
+    name: 'Professor Oak',
+    image: 'https://archives.bulbagarden.net/media/upload/3/3e/Lets_Go_Pikachu_Eevee_Professor_Oak.png',
+    haloColor: '#10B981',
+    shadowGlow: 'rgba(16, 185, 129, 0.35)',
+  },
+  {
+    name: 'Giovanni',
+    image: 'https://archives.bulbagarden.net/media/upload/a/a7/Lets_Go_Pikachu_Eevee_Giovanni.png',
+    haloColor: '#EF4444',
+    shadowGlow: 'rgba(239, 68, 68, 0.35)',
+  },
+  {
+    name: 'Arceus',
+    image: getPokemonArtwork(493),
+    haloColor: '#F59E0B',
+    shadowGlow: 'rgba(245, 158, 11, 0.35)',
+  },
+  {
+    name: 'Professor Kukui',
+    image: 'https://archives.bulbagarden.net/media/upload/e/ed/Sun_Moon_Professor_Kukui.png',
+    haloColor: '#06B6D4',
+    shadowGlow: 'rgba(6, 182, 212, 0.35)',
+  },
+  {
+    name: 'Professor Rowan',
+    image: 'https://archives.bulbagarden.net/media/upload/a/a4/Diamond_Pearl_Rowan.png',
+    haloColor: '#3B82F6',
+    shadowGlow: 'rgba(59, 130, 246, 0.35)',
+  },
+  {
+    name: 'Professor Sycamore',
+    image: 'https://archives.bulbagarden.net/media/upload/8/81/XY_Professor_Sycamore.png',
+    haloColor: '#EC4899',
+    shadowGlow: 'rgba(236, 72, 153, 0.35)',
+  },
+]
+
 // ── Main Landing Page ─────────────────────────────────────
 const LandingPage: React.FC = () => {
   const { scrollY } = useScroll()
   const heroY = useTransform(scrollY, [0, 500], [0, -100])
   const heroOpacity = useTransform(scrollY, [0, 350], [1, 0])
 
+  const [showcaseIndex, setShowcaseIndex] = useState(() => Math.floor(Math.random() * SHOWCASE_CHARACTERS.length))
 
+  // Prefetch showcase characters and Pokémon of the Year artworks in background to avoid latency during cycling
+  useEffect(() => {
+    const pokemonArtworks = Object.values(POKEMON_OF_THE_YEAR).flatMap(
+      (list) => list.map((p) => getPokemonArtwork(p.id))
+    )
+    const imagesToPrefetch = [
+      ...SHOWCASE_CHARACTERS.map((c) => c.image),
+      ...pokemonArtworks,
+    ]
+    imagesToPrefetch.forEach((url) => {
+      const img = new Image()
+      img.src = url
+    })
+  }, [])
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setShowcaseIndex((prev) => (prev + 1) % SHOWCASE_CHARACTERS.length)
+    }, 10000)
+    return () => clearInterval(interval)
+  }, [])
+
+  const char = SHOWCASE_CHARACTERS[showcaseIndex]
 
   return (
     <div className="overflow-x-hidden w-full">
@@ -369,12 +569,12 @@ const LandingPage: React.FC = () => {
             </h1>
 
             {/* Search input */}
-            <div className="relative w-full max-w-xl mx-auto lg:mx-0 my-8" style={{ zIndex: 20 }}>
-              <SearchBar placeholder="Search by name or Pokédex number..." />
+            <div className="relative w-full max-w-2xl mx-auto lg:mx-0 my-10" style={{ zIndex: 20 }}>
+              <SearchBar large={true} placeholder="Search by name or Pokédex number..." />
             </div>
 
             {/* CTA buttons */}
-            <div className="flex flex-wrap justify-center lg:justify-start gap-4 pt-4 mt-2">
+            <div className="flex flex-wrap justify-center lg:justify-start gap-5" style={{ marginTop: '15px' }}>
               <Link
                 to="/pokedex"
                 className="px-8 py-4 rounded-2xl font-bold text-sm transition-all flex items-center gap-2.5 hover:scale-105 active:scale-95 text-white"
@@ -394,10 +594,18 @@ const LandingPage: React.FC = () => {
               >
                 <IconTeam /> Build a Team
               </Link>
+              <Link
+                to="/battle"
+                className="px-8 py-4 rounded-2xl font-bold text-sm glass border border-white/15 hover:border-white/30 transition-all flex items-center gap-2.5 hover:scale-105 active:scale-95"
+                style={{ color: 'var(--text-primary)' }}
+                onClick={() => soundService.play('navigation')}
+              >
+                <IconBattle /> Battle Arena
+              </Link>
             </div>
           </motion.div>
 
-          {/* Right Column — 3D Showcase Card (Professor Oak) */}
+          {/* Right Column — Cycling Portrait Showcase */}
           <motion.div
             style={{ y: heroY }}
             className="lg:col-span-5 flex justify-center lg:justify-end w-full"
@@ -405,76 +613,34 @@ const LandingPage: React.FC = () => {
             animate={{ opacity: 1, scale: 1, x: 0 }}
             transition={{ duration: 0.9, delay: 0.15, ease: 'easeOut' }}
           >
-            <div className="relative group select-none pointer-events-auto">
-              {/* Outer decorative halo glow matching Kanto's green/mint theme */}
-              <div
-                className="absolute inset-0 blur-3xl opacity-20 transition-all duration-700 pointer-events-none"
-                style={{ background: '#10B981' }}
+            <div className="relative select-none pointer-events-auto flex items-center justify-center min-h-[380px] md:min-h-[500px] w-full">
+              {/* Outer decorative halo glow behind characters */}
+              <motion.div
+                key={`halo-${showcaseIndex}`}
+                className="absolute w-64 h-64 md:w-[320px] md:h-[320px] rounded-full blur-2xl pointer-events-none"
+                style={{ background: char.haloColor }}
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 0.25, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.8 }}
+                transition={{ duration: 0.8 }}
               />
 
-              <motion.div
-                className="glass-card p-6 rounded-3xl w-72 h-[380px] relative overflow-hidden flex flex-col items-center justify-between border-emerald-500/30 text-center select-none cursor-pointer"
-                style={{
-                  background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, var(--bg-card) 60%)',
-                  border: '1px solid rgba(16, 185, 129, 0.3)',
-                  boxShadow: '0 20px 50px rgba(0,0,0,0.5), 0 0 40px rgba(16, 185, 129, 0.2)',
-                }}
-                animate={{ y: [0, -12, 0] }}
-                transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
-                whileHover={{ scale: 1.03 }}
-                onClick={() => {
-                  soundService.play('success')
-                }}
-              >
-                {/* Tech grid overlay */}
-                <div className="absolute inset-0 opacity-[0.03] pointer-events-none" style={{
-                  backgroundImage: 'radial-gradient(circle, #10B981 1px, transparent 1px)',
-                  backgroundSize: '16px 16px'
-                }} />
-
-                {/* Scanning radar rings */}
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 border border-emerald-500/10 rounded-full animate-spin pointer-events-none" style={{ animationDuration: '10s' }} />
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-56 h-56 border border-dashed border-emerald-500/5 rounded-full animate-spin pointer-events-none" style={{ animationDuration: '20s', animationDirection: 'reverse' }} />
-
-                {/* Header info */}
-                <div className="w-full flex justify-between items-center text-[10px] font-mono font-bold text-emerald-400">
-                  <span>PROF. OAK · KANTO LAB</span>
-                  <span className="uppercase tracking-widest px-2 py-0.5 rounded-full text-[8px] border border-emerald-500/40 bg-emerald-500/10 animate-pulse">
-                    ONLINE
-                  </span>
-                </div>
-
-                {/* Professor Oak Artwork */}
-                <div className="relative py-3 flex items-center justify-center">
-                  <div className="absolute w-28 h-28 rounded-full bg-emerald-500/10 blur-2xl animate-pulse" />
-                  <img
-                    src="https://archives.bulbagarden.net/media/upload/3/3e/Lets_Go_Pikachu_Eevee_Professor_Oak.png"
-                    alt="Professor Oak"
-                    className="w-36 h-36 object-contain drop-shadow-2xl relative z-10 float"
-                    style={{ filter: 'drop-shadow(0 6px 20px rgba(16, 185, 129, 0.5))' }}
+              {/* Float slow wrapper for the image */}
+              <div className="float-slow relative z-10 flex items-center justify-center w-full h-full">
+                <AnimatePresence mode="wait">
+                  <motion.img
+                    key={char.name}
+                    src={char.image}
+                    alt={char.name}
+                    className="w-96 h-96 md:w-[500px] md:h-[500px] object-contain drop-shadow-3xl"
+                    style={{ filter: `drop-shadow(0 15px 35px ${char.shadowGlow})` }}
+                    initial={{ opacity: 0, scale: 0.92, rotate: -2 }}
+                    animate={{ opacity: 1, scale: 1, rotate: 0 }}
+                    exit={{ opacity: 0, scale: 0.92, rotate: 2 }}
+                    transition={{ duration: 0.5, ease: 'easeInOut' }}
                   />
-                </div>
-
-                {/* Footer details */}
-                <div className="w-full relative z-10">
-                  <h3 className="text-2xl font-black capitalize mb-1 text-emerald-400" style={{ fontFamily: 'var(--font-display)' }}>
-                    Professor Oak
-                  </h3>
-                  <p className="text-[9px] font-mono text-gray-500 uppercase tracking-widest mb-3">
-                    Kanto Research Database
-                  </p>
-                  <Link
-                    to="/characters"
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      soundService.play('click')
-                    }}
-                    className="inline-block text-[9px] font-bold uppercase tracking-wider px-4 py-1.5 rounded-xl bg-emerald-500/10 border border-emerald-500/25 hover:bg-emerald-500/20 hover:border-emerald-500/40 text-emerald-300 transition-all active:scale-95 cursor-pointer"
-                  >
-                    View All Characters
-                  </Link>
-                </div>
-              </motion.div>
+                </AnimatePresence>
+              </div>
             </div>
           </motion.div>
         </div>
@@ -525,7 +691,7 @@ const LandingPage: React.FC = () => {
         </div>
       </section>
 
-      {/* ── FEATURED CAROUSEL ── */}
+      {/* ── POKEMON OF THE YEAR CAROUSEL ── */}
       <section className="py-8 pb-20 px-6">
         <div className="max-w-5xl mx-auto">
           <motion.div
@@ -538,12 +704,12 @@ const LandingPage: React.FC = () => {
               className="text-3xl md:text-4xl font-black mb-3 text-center gradient-text"
               style={{ fontFamily: 'var(--font-display)' }}
             >
-              Featured Pokémon
+              Pokémon of the Year
             </h2>
             <p className="text-center mb-10 text-base" style={{ color: 'var(--text-secondary)' }}>
-              Iconic Pokémon from every generation
+              Official overall winners voted by millions of trainers worldwide
             </p>
-            <FeaturedCarousel />
+            <PokemonOfTheYearCarousel />
           </motion.div>
         </div>
       </section>

@@ -4,17 +4,51 @@ import {
   fetchEvolutionChain, fetchType, fetchAbility, fetchMove,
   fetchRegion, fetchAllRegions, fetchAllPokemonNames, getIdFromUrl,
 } from '../api/pokemon'
+import { GENERATIONS } from '../utils/constants'
 
 // ---- Pokémon list (infinite) ----
-export const usePokemonInfinite = (limit = 24) =>
-  useInfiniteQuery({
-    queryKey: ['pokemon-infinite', limit],
-    queryFn: ({ pageParam = 0 }) => fetchPokemonList(limit, pageParam as number),
-    initialPageParam: 0,
-    getNextPageParam: (last) =>
-      last.next ? new URL(last.next).searchParams.get('offset') ? parseInt(new URL(last.next).searchParams.get('offset')!) : null : null,
+export const usePokemonInfinite = (limit = 24, generations: number[] = []) => {
+  let startOffset = 0
+  let maxLimit = 1025
+
+  if (generations.length > 0) {
+    const activeGens = GENERATIONS.filter((g) => generations.includes(g.id))
+    if (activeGens.length > 0) {
+      const startIds = activeGens.map((g) => g.range[0])
+      const endIds = activeGens.map((g) => g.range[1])
+      const minId = Math.min(...startIds)
+      const maxId = Math.max(...endIds)
+      startOffset = minId - 1
+      maxLimit = maxId - minId + 1
+    }
+  }
+
+  return useInfiniteQuery({
+    queryKey: ['pokemon-infinite', limit, generations],
+    queryFn: ({ pageParam = startOffset }) => {
+      const currentOffset = pageParam as number
+      const remainingInRange = startOffset + maxLimit - currentOffset
+      const fetchLimit = Math.min(limit, remainingInRange)
+      if (fetchLimit <= 0) {
+        return Promise.resolve({ results: [], next: null, previous: null, count: 0 })
+      }
+      return fetchPokemonList(fetchLimit, currentOffset)
+    },
+    initialPageParam: startOffset,
+    getNextPageParam: (last) => {
+      if (!last.next) return null
+      const urlParams = new URL(last.next).searchParams
+      const offsetStr = urlParams.get('offset')
+      if (!offsetStr) return null
+      const nextOffset = parseInt(offsetStr)
+      if (nextOffset >= startOffset + maxLimit) {
+        return null
+      }
+      return nextOffset
+    },
     staleTime: 1000 * 60 * 10,
   })
+}
 
 // ---- Single Pokémon ----
 export const usePokemon = (nameOrId: string | number) =>

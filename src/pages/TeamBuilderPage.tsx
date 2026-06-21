@@ -6,7 +6,7 @@ import {
 } from 'recharts'
 import { useQuery } from '@tanstack/react-query'
 import { fetchPokemon, getPokemonArtwork, fetchType } from '../api/pokemon'
-import { useTeamStore, useUIStore } from '../store'
+import { useTeamStore, useUIStore, useModalStore } from '../store'
 import { useAllPokemonNames } from '../hooks/usePokeAPI'
 import TypeBadge from '../components/ui/TypeBadge'
 import { STAT_LABELS, TYPE_EFFECTIVENESS, REGIONS, TYPE_COLORS, GENERATIONS } from '../utils/constants'
@@ -50,18 +50,18 @@ const TeamBuilderPage: React.FC = () => {
   // Suggestions for search
   const suggestions = search.length >= 1
     ? (() => {
-        const q = search.toLowerCase().trim()
-        const starts = (allNames ?? []).filter((p) => p.name.toLowerCase().startsWith(q))
-        const contains = (allNames ?? []).filter((p) => !p.name.toLowerCase().startsWith(q) && p.name.toLowerCase().includes(q))
-        return [...starts, ...contains].slice(0, 12)
-      })()
+      const q = search.toLowerCase().trim()
+      const starts = (allNames ?? []).filter((p) => p.name.toLowerCase().startsWith(q))
+      const contains = (allNames ?? []).filter((p) => !p.name.toLowerCase().startsWith(q) && p.name.toLowerCase().includes(q))
+      return [...starts, ...contains].slice(0, 12)
+    })()
     : (allNames ?? []).slice(0, 12)
 
   const recentPokemon = !search && searchHistory.length > 0
     ? searchHistory
-        .map((name) => (allNames ?? []).find((p) => p.name === name))
-        .filter((p): p is { name: string; url: string } => !!p)
-        .slice(0, 4)
+      .map((name) => (allNames ?? []).find((p) => p.name === name))
+      .filter((p): p is { name: string; url: string } => !!p)
+      .slice(0, 4)
     : []
 
   // Average radar stats
@@ -74,8 +74,11 @@ const TeamBuilderPage: React.FC = () => {
 
   const addPokemon = async (name: string, id: number) => {
     if (currentTeam.length >= teamSize) {
-      soundService.play('error')
-      alert(`Your team is full! Max team size is ${teamSize}.`)
+      useModalStore.getState().openModal(
+        'Team is Full',
+        `Your current battle team already contains the maximum limit of ${teamSize} Pokémon. Please remove an existing member from the Team Builder before adding another.`,
+        'warning'
+      )
       return
     }
     try {
@@ -270,8 +273,11 @@ const TeamBuilderPage: React.FC = () => {
       }
 
       if (candidates.length === 0) {
-        soundService.play('error')
-        alert(`No Pokémon found matching selected Region: ${randomRegion} and Type: ${randomType}`)
+        useModalStore.getState().openModal(
+          'Generation Failed',
+          `No Pokémon were found matching the selected Region (${capitalize(randomRegion)}) and Type (${capitalize(randomType)}). Please adjust your randomized parameters and try again.`,
+          'error'
+        )
         setGenerating(false)
         return
       }
@@ -309,7 +315,7 @@ const TeamBuilderPage: React.FC = () => {
   }
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-8">
+    <div className="max-w-7xl mx-auto px-6 py-10">
       {/* Header with Settings */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -328,9 +334,8 @@ const TeamBuilderPage: React.FC = () => {
               <button
                 key={size}
                 onClick={() => { setTeamSize(size); soundService.play('click') }}
-                className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${
-                  teamSize === size ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/25' : 'text-gray-400 hover:text-white'
-                }`}
+                className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${teamSize === size ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/25' : 'text-gray-400 hover:text-white'
+                  }`}
               >
                 {size} Slots
               </button>
@@ -347,7 +352,7 @@ const TeamBuilderPage: React.FC = () => {
         </div>
       </motion.div>
 
-      <div className="grid lg:grid-cols-3 gap-6">
+      <div className="grid lg:grid-cols-3 gap-8 items-start">
         {/* Left — Team slots */}
         <div className="lg:col-span-2 space-y-4">
           {/* Slot grid */}
@@ -491,17 +496,17 @@ const TeamBuilderPage: React.FC = () => {
 
           {/* Team actions */}
           {currentTeam.length > 0 && (
-            <div className="flex gap-3 flex-wrap pt-2">
+            <div className="flex gap-4 flex-wrap mt-8 pt-6 border-t border-white/5" style={{ marginTop: '15px' }}>
               <button
                 onClick={() => { setShowSaveDialog(true); soundService.play('click') }}
-                className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all active:scale-95 shadow-md hover:shadow-indigo-500/10 cursor-pointer text-white"
+                className="flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-semibold transition-all active:scale-95 shadow-md hover:shadow-indigo-500/10 cursor-pointer text-white"
                 style={{ background: 'linear-gradient(135deg, #6366f1, #ec4899)' }}
               >
                 <FiSave size={14} /> Save Team
               </button>
               <button
                 onClick={() => { clearCurrentTeam(); soundService.play('click') }}
-                className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold glass border border-white/10 hover:border-red-500/30 text-gray-400 hover:text-red-400 transition-all active:scale-95 cursor-pointer"
+                className="flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-semibold glass border border-white/10 hover:border-red-500/30 text-gray-400 hover:text-red-400 transition-all active:scale-95 cursor-pointer"
               >
                 <FiTrash2 size={14} /> Clear Squad
               </button>
@@ -516,7 +521,7 @@ const TeamBuilderPage: React.FC = () => {
                 {teams.map((team) => {
                   const bstTotal = team.pokemon.reduce((sum, p) => sum + Object.values(p.stats).reduce((a, b) => a + b, 0), 0)
                   const avgBst = team.pokemon.length > 0 ? Math.round(bstTotal / team.pokemon.length) : 0
-                  
+
                   return (
                     <div key={team.id} className="glass p-4 rounded-xl border border-white/5 relative overflow-hidden group hover:border-indigo-500/30 transition-all duration-300">
                       {/* Accent glow on hover */}
@@ -554,7 +559,7 @@ const TeamBuilderPage: React.FC = () => {
                               Avg BST: <span className="text-indigo-300 font-bold">{avgBst}</span> · {new Date(team.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
                             </div>
                           </div>
-                          
+
                           <div className="flex gap-1.5">
                             <button
                               onClick={() => { loadTeam(team.id); soundService.play('success') }}
@@ -614,7 +619,7 @@ const TeamBuilderPage: React.FC = () => {
         </div>
 
         {/* Right — Analysis */}
-        <div className="space-y-4">
+        <div className="space-y-6">
           {/* Team Radar Stats — Visible unconditionally */}
           <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="glass-card p-4 rounded-2xl relative overflow-hidden">
             <h3 className="font-bold text-sm mb-3 flex items-center gap-1.5 text-gray-300">
@@ -648,7 +653,7 @@ const TeamBuilderPage: React.FC = () => {
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.1 }}
-            className="glass-card p-4 rounded-2xl space-y-4"
+            className="glass-card p-4 rounded-2xl space-y-5"
           >
             <h3 className="font-bold text-sm border-b border-white/5 pb-2 text-gray-300">
               🛡️ Team Effectiveness & Strategy
@@ -660,7 +665,7 @@ const TeamBuilderPage: React.FC = () => {
               <div className="space-y-2">
                 <div className="text-[10px] font-bold text-red-400 uppercase tracking-widest">Weaknesses (2x Damage)</div>
                 {teamAnalysis.weaknesses.length > 0 ? (
-                  <div className="flex flex-wrap gap-1">
+                  <div className="flex flex-wrap gap-1" style={{ marginTop: '15px' }}>
                     {teamAnalysis.weaknesses.map((w) => (
                       <div key={w.type} className="flex items-center gap-0.5" title={`${w.weakCount} team members are weak to ${w.type}`}>
                         <TypeBadge type={w.type} size="sm" showIcon={false} />
@@ -733,7 +738,7 @@ const TeamBuilderPage: React.FC = () => {
             >
               {/* Decorative Accent Line */}
               <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500" />
-              
+
               <h3 className="font-black text-xl mb-4 flex items-center gap-2 text-gray-100" style={{ fontFamily: 'var(--font-display)' }}>
                 💾 Save Team Composition
               </h3>
@@ -789,9 +794,8 @@ const TeamBuilderPage: React.FC = () => {
                         soundService.play('success')
                       }
                     }}
-                    className={`flex-1 py-2.5 rounded-xl font-semibold text-sm text-white hover:shadow-lg transition-all text-center ${
-                      teamName.trim() ? 'hover:shadow-indigo-500/20 active:scale-95 cursor-pointer' : 'opacity-50 cursor-not-allowed'
-                    }`}
+                    className={`flex-1 py-2.5 rounded-xl font-semibold text-sm text-white hover:shadow-lg transition-all text-center ${teamName.trim() ? 'hover:shadow-indigo-500/20 active:scale-95 cursor-pointer' : 'opacity-50 cursor-not-allowed'
+                      }`}
                     style={{ background: 'linear-gradient(135deg, #6366f1, #ec4899)' }}
                   >
                     Save Team
