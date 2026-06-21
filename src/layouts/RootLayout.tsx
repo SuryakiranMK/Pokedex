@@ -1,7 +1,6 @@
 import React from 'react'
-import { Outlet } from 'react-router-dom'
+import { Outlet, useLocation, ScrollRestoration } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { useLocation } from 'react-router-dom'
 import Navbar from '../components/layout/Navbar'
 import ParticleCanvas from '../components/ui/ParticleCanvas'
 import BackgroundWatermarks from '../components/ui/BackgroundWatermarks'
@@ -17,6 +16,7 @@ const RootLayout: React.FC = () => {
 
   return (
     <div className="min-h-screen animated-gradient relative">
+      <ScrollRestoration />
       {/* Aurora background */}
       <div className="aurora" aria-hidden="true" />
 

@@ -10,6 +10,13 @@ import { FEATURED_POKEMON, TYPE_COLORS, REGIONS } from '../utils/constants'
 import { capitalize } from '../utils/helpers'
 import { soundService } from '../services/sound'
 
+// Import local generated character images
+import oakImg from '../assets/professor_oak.png'
+import giovanniImg from '../assets/giovanni.png'
+import kukuiImg from '../assets/professor_kukui.png'
+import rowanImg from '../assets/professor_rowan.png'
+import sycamoreImg from '../assets/professor_sycamore.png'
+
 // ── SVG Icons for Quick Nav ───────────────────────────────
 const IconPokedex = () => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" width="26" height="26">
@@ -187,10 +194,10 @@ const PokemonOfTheYearCarousel: React.FC = () => {
   const featured = POKEMON_OF_THE_YEAR[activeRegion] || []
 
   const { data: pokemon } = useQuery({
-    queryKey: ['pokemon', featured[current]?.name],
-    queryFn: () => fetchPokemon(featured[current]?.name),
+    queryKey: ['pokemon', featured[current]?.id],
+    queryFn: () => fetchPokemon(featured[current]?.id),
     staleTime: 1000 * 60 * 30,
-    enabled: featured.length > 0 && !!featured[current]?.name,
+    enabled: featured.length > 0 && !!featured[current]?.id,
   })
 
   const startAutoSlide = () => {
@@ -439,13 +446,13 @@ const QUICK_NAV = [
 const SHOWCASE_CHARACTERS = [
   {
     name: 'Professor Oak',
-    image: 'https://archives.bulbagarden.net/media/upload/3/3e/Lets_Go_Pikachu_Eevee_Professor_Oak.png',
+    image: oakImg,
     haloColor: '#10B981',
     shadowGlow: 'rgba(16, 185, 129, 0.35)',
   },
   {
     name: 'Giovanni',
-    image: 'https://archives.bulbagarden.net/media/upload/a/a7/Lets_Go_Pikachu_Eevee_Giovanni.png',
+    image: giovanniImg,
     haloColor: '#EF4444',
     shadowGlow: 'rgba(239, 68, 68, 0.35)',
   },
@@ -457,19 +464,19 @@ const SHOWCASE_CHARACTERS = [
   },
   {
     name: 'Professor Kukui',
-    image: 'https://archives.bulbagarden.net/media/upload/e/ed/Sun_Moon_Professor_Kukui.png',
+    image: kukuiImg,
     haloColor: '#06B6D4',
     shadowGlow: 'rgba(6, 182, 212, 0.35)',
   },
   {
     name: 'Professor Rowan',
-    image: 'https://archives.bulbagarden.net/media/upload/a/a4/Diamond_Pearl_Rowan.png',
+    image: rowanImg,
     haloColor: '#3B82F6',
     shadowGlow: 'rgba(59, 130, 246, 0.35)',
   },
   {
     name: 'Professor Sycamore',
-    image: 'https://archives.bulbagarden.net/media/upload/8/81/XY_Professor_Sycamore.png',
+    image: sycamoreImg,
     haloColor: '#EC4899',
     shadowGlow: 'rgba(236, 72, 153, 0.35)',
   },
