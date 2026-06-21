@@ -91,8 +91,8 @@ const Navbar: React.FC = () => {
             <img
               src={getPokemonArtwork(pikachuId)}
               alt="Pikachu Mascot"
-              className="w-10 h-10 object-contain hover:scale-125 hover:rotate-12 transition-transform duration-300 pointer-events-auto cursor-pointer"
-              style={{ filter: 'drop-shadow(0 0 6px rgba(248, 208, 48, 0.8))' }}
+              className="w-14 h-14 object-contain hover:scale-125 hover:rotate-12 transition-transform duration-300 pointer-events-auto cursor-pointer"
+              style={{ filter: 'drop-shadow(0 0 5px rgba(248, 208, 48, 0.55))' }}
               onMouseEnter={handlePikachuHover}
             />
             <span className="font-black text-2xl tracking-tight gradient-text" style={{ fontFamily: 'var(--font-display)' }}>

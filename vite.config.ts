@@ -26,21 +26,62 @@ export default defineConfig({
         globPatterns: ['**/*.{js,css,html,ico,png,svg}'],
         maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
         runtimeCaching: [
+          // ── PokeAPI JSON data ──────────────────────────────────────────────
+          // StaleWhileRevalidate: serve instantly from cache, silently refresh
+          // in the background so data never goes stale.
           {
             urlPattern: /^https:\/\/pokeapi\.co\/api\/v2\/.*/i,
-            handler: 'CacheFirst',
+            handler: 'StaleWhileRevalidate',
             options: {
-              cacheName: 'pokeapi-cache',
-              expiration: { maxEntries: 500, maxAgeSeconds: 86400 * 7 },
+              cacheName: 'pokeapi-data-cache',
+              expiration: {
+                maxEntries: 600,
+                maxAgeSeconds: 86400 * 7,
+              },
               cacheableResponse: { statuses: [0, 200] },
             },
           },
+
+          // ── Official artwork (high-res, ~130 kB each) ─────────────────────
+          // CacheFirst: once downloaded, serve locally forever (30 days).
           {
-            urlPattern: /^https:\/\/raw\.githubusercontent\.com\/.*/i,
+            urlPattern: /^https:\/\/raw\.githubusercontent\.com\/PokeAPI\/sprites\/master\/sprites\/pokemon\/other\/official-artwork\/.*/i,
             handler: 'CacheFirst',
             options: {
-              cacheName: 'pokemon-images-cache',
-              expiration: { maxEntries: 1000, maxAgeSeconds: 86400 * 30 },
+              cacheName: 'pokemon-artwork-cache',
+              expiration: {
+                maxEntries: 1500,
+                maxAgeSeconds: 86400 * 30,
+              },
+              cacheableResponse: { statuses: [0, 200] },
+            },
+          },
+
+          // ── Default front sprites (~2 kB each) ────────────────────────────
+          // CacheFirst: tiny, frequently used in dropdowns. Cache aggressively.
+          {
+            urlPattern: /^https:\/\/raw\.githubusercontent\.com\/PokeAPI\/sprites\/master\/sprites\/pokemon\/\d+\.png.*/i,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'pokemon-sprite-cache',
+              expiration: {
+                maxEntries: 1500,
+                maxAgeSeconds: 86400 * 60,
+              },
+              cacheableResponse: { statuses: [0, 200] },
+            },
+          },
+
+          // ── Home sprites & shiny artwork ──────────────────────────────────
+          {
+            urlPattern: /^https:\/\/raw\.githubusercontent\.com\/PokeAPI\/sprites\/master\/sprites\/pokemon\/other\/.*/i,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'pokemon-other-sprites-cache',
+              expiration: {
+                maxEntries: 2000,
+                maxAgeSeconds: 86400 * 30,
+              },
               cacheableResponse: { statuses: [0, 200] },
             },
           },

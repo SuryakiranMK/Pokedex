@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { FiSearch, FiZap, FiShield, FiTrendingUp } from 'react-icons/fi'
 import { useQuery } from '@tanstack/react-query'
-import { fetchPokemon, getPokemonArtwork } from '../api/pokemon'
+import { fetchPokemon, getPokemonArtwork, getPokemonSprite } from '../api/pokemon'
 import { useAllPokemonNames } from '../hooks/usePokeAPI'
 import { TYPE_COLORS } from '../utils/constants'
 import { capitalize, extractIdFromUrl } from '../utils/helpers'
@@ -206,7 +206,7 @@ const PokemonPicker: React.FC<{
                         }}
                         className="flex items-center gap-2 w-full px-3 py-1.5 hover:bg-white/5 text-xs text-left transition-colors"
                       >
-                        <img src={getPokemonArtwork(id)} alt="" className="w-6 h-6 object-contain flex-shrink-0" />
+                        <img src={getPokemonSprite(id)} alt="" className="w-6 h-6 object-contain flex-shrink-0" />
                         <span className="capitalize">{capitalize(p.name)}</span>
                       </button>
                     )
@@ -233,7 +233,7 @@ const PokemonPicker: React.FC<{
                         }}
                         className="flex items-center gap-2 w-full px-3 py-1.5 hover:bg-white/5 text-xs text-left transition-colors"
                       >
-                        <img src={getPokemonArtwork(id)} alt="" className="w-6 h-6 object-contain flex-shrink-0" />
+                        <img src={getPokemonSprite(id)} alt="" className="w-6 h-6 object-contain flex-shrink-0" />
                         <span className="capitalize">{capitalize(p.name)}</span>
                       </button>
                     )

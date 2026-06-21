@@ -4,8 +4,9 @@ import RootLayout from '../layouts/RootLayout'
 import LoadingScreen from '../components/ui/LoadingScreen'
 import GlobalErrorBoundary from '../components/ui/GlobalErrorBoundary'
 
-// Lazy loaded pages
-const LandingPage = lazy(() => import('../pages/LandingPage'))
+import LandingPage from '../pages/LandingPage'
+
+// Lazy-loaded pages — loaded on demand when the user first visits that route
 const PokedexPage = lazy(() => import('../pages/PokedexPage'))
 const PokemonDetailPage = lazy(() => import('../pages/PokemonDetailPage'))
 const ComparePage = lazy(() => import('../pages/ComparePage'))
@@ -30,7 +31,8 @@ export const router = createBrowserRouter([
     children: [
       {
         index: true,
-        element: withSuspense(LandingPage, 'Loading Welcome Screen...'),
+        // Eagerly imported — no Suspense needed, navigating home is always instant
+        element: <LandingPage />,
       },
       {
         path: 'pokedex',

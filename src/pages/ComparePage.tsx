@@ -8,7 +8,7 @@ import {
 import { useMultiplePokemon } from '../hooks/usePokeAPI'
 import { useUIStore } from '../store'
 import { useAllPokemonNames } from '../hooks/usePokeAPI'
-import { fetchPokemon, getPokemonArtwork } from '../api/pokemon'
+import { fetchPokemon, getPokemonArtwork, getPokemonSprite } from '../api/pokemon'
 import { useQuery } from '@tanstack/react-query'
 import TypeBadge from '../components/ui/TypeBadge'
 import { TYPE_COLORS, STAT_LABELS } from '../utils/constants'
@@ -177,7 +177,7 @@ const ComparePage: React.FC = () => {
                         }}
                         className={`flex items-center gap-2 p-2 rounded-xl text-xs glass transition-all text-left ${already ? 'opacity-40 cursor-not-allowed' : 'hover:bg-white/8 cursor-pointer'}`}
                       >
-                        <img src={getPokemonArtwork(id)} alt="" className="w-8 h-8 object-contain flex-shrink-0" />
+                        <img src={getPokemonSprite(id)} alt="" className="w-8 h-8 object-contain flex-shrink-0" />
                         <span className="capitalize truncate font-medium">{capitalize(p.name)}</span>
                       </button>
                     )
@@ -211,7 +211,7 @@ const ComparePage: React.FC = () => {
                         }}
                         className={`flex items-center gap-2 p-2 rounded-xl text-xs glass transition-all text-left ${already ? 'opacity-40 cursor-not-allowed' : 'hover:bg-white/8 cursor-pointer'}`}
                       >
-                        <img src={getPokemonArtwork(id)} alt="" className="w-8 h-8 object-contain flex-shrink-0" />
+                        <img src={getPokemonSprite(id)} alt="" className="w-8 h-8 object-contain flex-shrink-0" />
                         <span className="capitalize truncate font-medium">{capitalize(p.name)}</span>
                       </button>
                     )

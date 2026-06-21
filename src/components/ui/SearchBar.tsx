@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom'
 import { useUIStore } from '../../store'
 import { useAllPokemonNames } from '../../hooks/usePokeAPI'
 import { capitalize, fuzzyMatch, extractIdFromUrl } from '../../utils/helpers'
-import { getPokemonArtwork } from '../../api/pokemon'
+import { getPokemonSprite } from '../../api/pokemon'
 import { soundService } from '../../services/sound'
 
 interface SearchBarProps {
@@ -145,7 +145,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
                       className={`flex items-center gap-3 w-full px-3 py-2 rounded-xl transition-colors text-sm text-left ${i === selectedIdx ? 'bg-indigo-500/20 text-indigo-300' : 'hover:bg-white/5'}`}
                       whileHover={{ x: 4 }}
                     >
-                      <img src={getPokemonArtwork(id)} alt="" className="w-8 h-8 object-contain flex-shrink-0" />
+                      <img src={getPokemonSprite(id)} alt="" className="w-8 h-8 object-contain flex-shrink-0" />
                       <span className="capitalize font-medium">{capitalize(p.name)}</span>
                       <span className="ml-auto text-xs text-gray-500 font-mono">#{String(id).padStart(4, '0')}</span>
                     </motion.button>
