@@ -13,6 +13,7 @@ const FavoritesPage = lazy(() => import('../pages/FavoritesPage'))
 const RegionsPage = lazy(() => import('../pages/RegionsPage'))
 const TypesPage = lazy(() => import('../pages/TypesPage'))
 const BattlePage = lazy(() => import('../pages/BattlePage'))
+const CharactersPage = lazy(() => import('../pages/CharactersPage'))
 
 const withSuspense = (Component: React.ComponentType, message?: string) => (
   <Suspense fallback={<LoadingScreen message={message} />}>
@@ -56,6 +57,10 @@ export const router = createBrowserRouter([
       {
         path: 'types',
         element: withSuspense(TypesPage, 'Loading Type Matchup Charts...'),
+      },
+      {
+        path: 'characters',
+        element: withSuspense(CharactersPage, 'Loading Characters Roster...'),
       },
       {
         path: 'battle',

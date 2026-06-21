@@ -397,7 +397,7 @@ const LandingPage: React.FC = () => {
             </div>
           </motion.div>
 
-          {/* Right Column — 3D Showcase Card (Rotom Dex) */}
+          {/* Right Column — 3D Showcase Card (Professor Oak) */}
           <motion.div
             style={{ y: heroY }}
             className="lg:col-span-5 flex justify-center lg:justify-end w-full"
@@ -406,18 +406,18 @@ const LandingPage: React.FC = () => {
             transition={{ duration: 0.9, delay: 0.15, ease: 'easeOut' }}
           >
             <div className="relative group select-none pointer-events-auto">
-              {/* Outer decorative halo glow matching Rotom's orange/electric color */}
+              {/* Outer decorative halo glow matching Kanto's green/mint theme */}
               <div
                 className="absolute inset-0 blur-3xl opacity-20 transition-all duration-700 pointer-events-none"
-                style={{ background: '#F08030' }}
+                style={{ background: '#10B981' }}
               />
 
               <motion.div
-                className="glass-card p-6 rounded-3xl w-72 h-[380px] relative overflow-hidden flex flex-col items-center justify-between border-orange-500/30 text-center select-none cursor-pointer"
+                className="glass-card p-6 rounded-3xl w-72 h-[380px] relative overflow-hidden flex flex-col items-center justify-between border-emerald-500/30 text-center select-none cursor-pointer"
                 style={{
-                  background: 'linear-gradient(135deg, rgba(240, 128, 48, 0.15) 0%, var(--bg-card) 60%)',
-                  border: '1px solid rgba(240, 128, 48, 0.3)',
-                  boxShadow: '0 20px 50px rgba(0,0,0,0.5), 0 0 40px rgba(240, 128, 48, 0.2)',
+                  background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, var(--bg-card) 60%)',
+                  border: '1px solid rgba(16, 185, 129, 0.3)',
+                  boxShadow: '0 20px 50px rgba(0,0,0,0.5), 0 0 40px rgba(16, 185, 129, 0.2)',
                 }}
                 animate={{ y: [0, -12, 0] }}
                 transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
@@ -428,50 +428,51 @@ const LandingPage: React.FC = () => {
               >
                 {/* Tech grid overlay */}
                 <div className="absolute inset-0 opacity-[0.03] pointer-events-none" style={{
-                  backgroundImage: 'radial-gradient(circle, #F08030 1px, transparent 1px)',
+                  backgroundImage: 'radial-gradient(circle, #10B981 1px, transparent 1px)',
                   backgroundSize: '16px 16px'
                 }} />
 
                 {/* Scanning radar rings */}
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 border border-orange-500/10 rounded-full animate-spin pointer-events-none" style={{ animationDuration: '10s' }} />
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-56 h-56 border border-dashed border-orange-500/5 rounded-full animate-spin pointer-events-none" style={{ animationDuration: '20s', animationDirection: 'reverse' }} />
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 border border-emerald-500/10 rounded-full animate-spin pointer-events-none" style={{ animationDuration: '10s' }} />
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-56 h-56 border border-dashed border-emerald-500/5 rounded-full animate-spin pointer-events-none" style={{ animationDuration: '20s', animationDirection: 'reverse' }} />
 
                 {/* Header info */}
-                <div className="w-full flex justify-between items-center text-[10px] font-mono font-bold text-orange-400">
-                  <span>ROTOM DEX v2.5</span>
-                  <span className="uppercase tracking-widest px-2 py-0.5 rounded-full text-[8px] border border-orange-500/40 bg-orange-500/10 animate-pulse">
-                    LIVE SCAN
+                <div className="w-full flex justify-between items-center text-[10px] font-mono font-bold text-emerald-400">
+                  <span>PROF. OAK · KANTO LAB</span>
+                  <span className="uppercase tracking-widest px-2 py-0.5 rounded-full text-[8px] border border-emerald-500/40 bg-emerald-500/10 animate-pulse">
+                    ONLINE
                   </span>
                 </div>
 
-                {/* Rotom Artwork */}
+                {/* Professor Oak Artwork */}
                 <div className="relative py-3 flex items-center justify-center">
-                  <div className="absolute w-28 h-28 rounded-full bg-orange-500/10 blur-2xl animate-pulse" />
+                  <div className="absolute w-28 h-28 rounded-full bg-emerald-500/10 blur-2xl animate-pulse" />
                   <img
-                    src={getPokemonArtwork(479)}
-                    alt="Rotom Dex"
-                    className="w-40 h-40 object-contain drop-shadow-2xl relative z-10 float"
-                    style={{ filter: 'drop-shadow(0 6px 20px rgba(240, 128, 48, 0.5))' }}
+                    src="https://archives.bulbagarden.net/media/upload/f/f0/LGPE_Professor_Oak.png"
+                    alt="Professor Oak"
+                    className="w-36 h-36 object-contain drop-shadow-2xl relative z-10 float"
+                    style={{ filter: 'drop-shadow(0 6px 20px rgba(16, 185, 129, 0.5))' }}
                   />
                 </div>
 
                 {/* Footer details */}
                 <div className="w-full relative z-10">
-                  <h3 className="text-2xl font-black capitalize mb-1 text-orange-400" style={{ fontFamily: 'var(--font-display)' }}>
-                    Rotom Dex
+                  <h3 className="text-2xl font-black capitalize mb-1 text-emerald-400" style={{ fontFamily: 'var(--font-display)' }}>
+                    Professor Oak
                   </h3>
                   <p className="text-[9px] font-mono text-gray-500 uppercase tracking-widest mb-3">
-                    System Analyzer Active
+                    Kanto Research Database
                   </p>
-                  <button
+                  <Link
+                    to="/characters"
                     onClick={(e) => {
                       e.stopPropagation()
-                      soundService.play('success')
+                      soundService.play('click')
                     }}
-                    className="inline-block text-[9px] font-bold uppercase tracking-wider px-4 py-1.5 rounded-xl bg-orange-500/10 border border-orange-500/25 hover:bg-orange-500/20 hover:border-orange-500/40 text-orange-300 transition-all active:scale-95 cursor-pointer"
+                    className="inline-block text-[9px] font-bold uppercase tracking-wider px-4 py-1.5 rounded-xl bg-emerald-500/10 border border-emerald-500/25 hover:bg-emerald-500/20 hover:border-emerald-500/40 text-emerald-300 transition-all active:scale-95 cursor-pointer"
                   >
-                    Sync Dex Data
-                  </button>
+                    View All Characters
+                  </Link>
                 </div>
               </motion.div>
             </div>

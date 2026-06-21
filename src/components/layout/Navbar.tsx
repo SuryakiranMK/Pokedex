@@ -3,7 +3,7 @@ import { Link, useLocation } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   FiHome, FiGrid, FiUsers, FiGitBranch, FiMap, FiZap,
-  FiHeart, FiShield, FiVolume2, FiVolumeX, FiMenu, FiX,
+  FiHeart, FiShield, FiVolume2, FiVolumeX, FiMenu, FiX, FiAward,
 } from 'react-icons/fi'
 import SearchBar from '../ui/SearchBar'
 import { useSoundStore } from '../../store'
@@ -18,6 +18,7 @@ const NAV_LINKS = [
   { path: '/favorites',   label: 'Favorites',   icon: FiHeart },
   { path: '/regions',     label: 'Regions',     icon: FiMap },
   { path: '/types',       label: 'Types',       icon: FiZap },
+  { path: '/characters',  label: 'Characters',  icon: FiAward },
   { path: '/battle',      label: 'Battle',      icon: FiShield },
 ]
 
@@ -90,7 +91,7 @@ const Navbar: React.FC = () => {
             <img
               src={getPokemonArtwork(pikachuId)}
               alt="Pikachu Mascot"
-              className="w-7 h-7 object-contain hover:scale-125 hover:rotate-12 transition-transform duration-300 pointer-events-auto cursor-pointer"
+              className="w-10 h-10 object-contain hover:scale-125 hover:rotate-12 transition-transform duration-300 pointer-events-auto cursor-pointer"
               style={{ filter: 'drop-shadow(0 0 6px rgba(248, 208, 48, 0.8))' }}
               onMouseEnter={handlePikachuHover}
             />

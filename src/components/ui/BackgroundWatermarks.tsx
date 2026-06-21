@@ -25,12 +25,12 @@ const PIKACHU_FAMILY = [
 ]
 
 const WATERMARK_PRESETS = [
-  { x: 6, y: 15, size: 90, delay: 0.2 },
-  { x: 25, y: 55, size: 110, delay: 1.5 },
-  { x: 45, y: 22, size: 85, delay: 2.7 },
-  { x: 62, y: 72, size: 100, delay: 0.9 },
+  { x: 6, y: 15, size: 70, delay: 0.2 },
+  { x: 25, y: 55, size: 155, delay: 1.5 },
+  { x: 45, y: 22, size: 95, delay: 2.7 },
+  { x: 62, y: 72, size: 180, delay: 0.9 },
   { x: 86, y: 16, size: 80, delay: 3.4 },
-  { x: 74, y: 44, size: 115, delay: 4.1 },
+  { x: 74, y: 44, size: 135, delay: 4.1 },
 ]
 
 export const BackgroundWatermarks: React.FC = () => {
