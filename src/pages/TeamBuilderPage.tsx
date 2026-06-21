@@ -14,7 +14,24 @@ import { capitalize, extractIdFromUrl } from '../utils/helpers'
 import { soundService } from '../services/sound'
 import type { TeamPokemon } from '../types'
 
+// Import Pokéball assets for slot icons
+import pokeBallImg from '../assets/poke-ball.png'
+import greatBallImg from '../assets/great-ball.png'
+import ultraBallImg from '../assets/ultra-ball.png'
+import masterBallImg from '../assets/master-ball.png'
+import premierBallImg from '../assets/premier-ball.png'
+import luxuryBallImg from '../assets/luxury-ball.png'
+
 const SLOT_COLORS = ['#6366f1', '#ec4899', '#10b981', '#f59e0b', '#06b6d4', '#ef4444']
+
+const BALL_IMAGES = [
+  pokeBallImg,
+  greatBallImg,
+  ultraBallImg,
+  masterBallImg,
+  premierBallImg,
+  luxuryBallImg,
+]
 
 const TeamBuilderPage: React.FC = () => {
   const {
@@ -397,12 +414,17 @@ const TeamBuilderPage: React.FC = () => {
                   ) : (
                     <button
                       onClick={() => { setShowSearch(true); soundService.play('click') }}
-                      className="w-full h-full flex flex-col items-center justify-center gap-2 text-gray-500 hover:text-white transition-colors min-h-[135px]"
+                      className="w-full h-full flex flex-col items-center justify-center gap-2.5 text-gray-500 hover:text-white transition-all group min-h-[135px]"
                     >
-                      <div className="w-10 h-10 rounded-xl border-2 border-dashed border-current flex items-center justify-center">
-                        <FiPlus size={18} />
+                      <div className="w-12 h-12 flex items-center justify-center relative group-hover:scale-110 transition-transform">
+                        <img
+                          src={BALL_IMAGES[i] ?? pokeBallImg}
+                          alt=""
+                          className="w-10 h-10 object-contain opacity-40 group-hover:opacity-100 transition-opacity"
+                          style={{ filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.4))' }}
+                        />
                       </div>
-                      <span className="text-xs font-semibold">Slot {i + 1}</span>
+                      <span className="text-xs font-semibold group-hover:text-indigo-400 transition-colors">Slot {i + 1}</span>
                     </button>
                   )}
                 </motion.div>
