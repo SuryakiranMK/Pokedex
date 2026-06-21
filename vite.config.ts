@@ -48,4 +48,31 @@ export default defineConfig({
     }),
   ],
   resolve: { alias: { '@': '/src' } },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (id.includes('node_modules')) {
+            const parts = id.split('node_modules/')
+            const pathParts = parts[parts.length - 1].split('/')
+            const pkgName = pathParts[0].startsWith('@') ? `${pathParts[0]}/${pathParts[1]}` : pathParts[0]
+
+            if (pkgName === 'react' || pkgName === 'react-dom' || pkgName === 'scheduler' || pkgName === 'react-is') {
+              return 'vendor-react'
+            }
+            if (pkgName.startsWith('@tanstack/react-query')) {
+              return 'vendor-query'
+            }
+            if (pkgName === 'framer-motion') {
+              return 'vendor-framer'
+            }
+            if (pkgName === 'recharts' || pkgName.startsWith('d3')) {
+              return 'vendor-recharts'
+            }
+            return 'vendor-others'
+          }
+        },
+      },
+    },
+  },
 })

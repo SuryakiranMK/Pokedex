@@ -58,8 +58,6 @@ const ParticleCanvas: React.FC<ParticleCanvasProps> = ({
         ctx.save()
         ctx.globalAlpha = p.alpha
         ctx.fillStyle = p.color
-        ctx.shadowBlur = 8
-        ctx.shadowColor = p.color
         ctx.beginPath()
         ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2)
         ctx.fill()

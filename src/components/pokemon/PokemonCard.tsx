@@ -22,8 +22,11 @@ interface PokemonCardProps {
 }
 
 const PokemonCard: React.FC<PokemonCardProps> = ({ id, name, types, height, weight, viewMode = 'grid' }) => {
-  const { isFavorite, toggleFavorite } = useFavoritesStore()
-  const { currentTeam, addToTeam, teamSize } = useTeamStore()
+  const isFavorite = useFavoritesStore((s) => s.isFavorite)
+  const toggleFavorite = useFavoritesStore((s) => s.toggleFavorite)
+  const currentTeam = useTeamStore((s) => s.currentTeam)
+  const addToTeam = useTeamStore((s) => s.addToTeam)
+  const teamSize = useTeamStore((s) => s.teamSize)
   const [adding, setAdding] = useState(false)
   const fav = isFavorite(id)
   const cardRef = useRef<HTMLDivElement>(null)
@@ -276,4 +279,4 @@ const PokemonCard: React.FC<PokemonCardProps> = ({ id, name, types, height, weig
   )
 }
 
-export default PokemonCard
+export default React.memo(PokemonCard)

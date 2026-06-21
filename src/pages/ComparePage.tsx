@@ -42,13 +42,8 @@ const ComparePage: React.FC = () => {
         .slice(0, 4)
     : []
 
-  // Fetch all compare Pokémon
-  const { data: pokemonList, isLoading } = useQuery({
-    queryKey: ['compare-pokemon', compareList],
-    queryFn: () => Promise.all(compareList.map((id) => fetchPokemon(id))),
-    enabled: compareList.length > 0,
-    staleTime: 1000 * 60 * 30,
-  })
+  // Fetch all compare Pokémon using global cache-sharing hook
+  const { data: pokemonList, isLoading } = useMultiplePokemon(compareList)
 
   const statNames = ['hp', 'attack', 'defense', 'special-attack', 'special-defense', 'speed']
 

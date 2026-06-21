@@ -2,8 +2,8 @@ import React, { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { FiChevronRight } from 'react-icons/fi'
 import { Link } from 'react-router-dom'
-import { useQuery } from '@tanstack/react-query'
-import { fetchPokemon, getPokemonArtwork } from '../api/pokemon'
+import { useMultiplePokemon } from '../hooks/usePokeAPI'
+import { getPokemonArtwork } from '../api/pokemon'
 import { REGIONS } from '../utils/constants'
 import { capitalize } from '../utils/helpers'
 import TypeBadge from '../components/ui/TypeBadge'
@@ -188,13 +188,8 @@ const RegionsPage: React.FC = () => {
   const [selected, setSelected] = useState<string | null>(null)
   const region = REGIONS.find((r) => r.id === selected)
 
-  // Fetch every single legendary in the region
-  const { data: legendaries, isLoading: loadingLegendaries } = useQuery({
-    queryKey: ['legendaries', selected],
-    queryFn: () => region ? Promise.all(region.legendary.map((s) => fetchPokemon(s))) : Promise.resolve([]),
-    enabled: !!selected,
-    staleTime: 1000 * 60 * 60,
-  })
+  // Fetch every single legendary in the region using global cache-sharing hook
+  const { data: legendaries, isLoading: loadingLegendaries } = useMultiplePokemon(region?.legendary ?? [])
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-8">
@@ -234,6 +229,7 @@ const RegionsPage: React.FC = () => {
                       alt=""
                       className="absolute -right-3 -bottom-3 w-20 h-20 object-contain opacity-20 group-hover:opacity-60 group-hover:scale-110 group-hover:-rotate-6 transition-all duration-500 filter drop-shadow-2xl"
                       style={{ filter: `drop-shadow(0 6px 16px ${r.color}40)` }}
+                      loading="lazy"
                     />
                   </div>
                 </div>
@@ -312,6 +308,7 @@ const RegionsPage: React.FC = () => {
                                         src={getPokemonArtwork(p.id)}
                                         alt={p.name}
                                         className="w-11 h-11 object-contain"
+                                        loading="lazy"
                                       />
                                     </div>
                                     <div className="min-w-0 hidden xs:block">
@@ -377,6 +374,7 @@ const RegionsPage: React.FC = () => {
                                       src={getPokemonArtwork(p.id)}
                                       alt={p.name}
                                       className="w-16 h-16 object-contain"
+                                      loading="lazy"
                                     />
                                   </div>
                                   <div className="flex-1 min-w-0">

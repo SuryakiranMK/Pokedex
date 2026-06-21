@@ -483,20 +483,7 @@ const LandingPage: React.FC = () => {
 
   const [showcaseIndex, setShowcaseIndex] = useState(() => Math.floor(Math.random() * SHOWCASE_CHARACTERS.length))
 
-  // Prefetch showcase characters and Pokémon of the Year artworks in background to avoid latency during cycling
-  useEffect(() => {
-    const pokemonArtworks = Object.values(POKEMON_OF_THE_YEAR).flatMap(
-      (list) => list.map((p) => getPokemonArtwork(p.id))
-    )
-    const imagesToPrefetch = [
-      ...SHOWCASE_CHARACTERS.map((c) => c.image),
-      ...pokemonArtworks,
-    ]
-    imagesToPrefetch.forEach((url) => {
-      const img = new Image()
-      img.src = url
-    })
-  }, [])
+
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -543,6 +530,7 @@ const LandingPage: React.FC = () => {
                 alt=""
                 className="w-full h-full object-contain filter grayscale opacity-80"
                 style={{ filter: `drop-shadow(0 0 15px ${item.color})` }}
+                loading="lazy"
               />
             )}
           </motion.div>
@@ -638,6 +626,8 @@ const LandingPage: React.FC = () => {
                     animate={{ opacity: 1, scale: 1, rotate: 0 }}
                     exit={{ opacity: 0, scale: 0.92, rotate: 2 }}
                     transition={{ duration: 0.5, ease: 'easeInOut' }}
+                    fetchPriority="high"
+                    loading="eager"
                   />
                 </AnimatePresence>
               </div>
@@ -827,6 +817,7 @@ const LandingPage: React.FC = () => {
                         alt=""
                         className="absolute -right-5 -bottom-5 w-28 h-28 object-contain opacity-25 group-hover:opacity-85 group-hover:scale-115 group-hover:-translate-y-2 group-hover:-rotate-6 transition-all duration-500 filter drop-shadow-2xl"
                         style={{ filter: `drop-shadow(0 10px 30px ${glow})` }}
+                        loading="lazy"
                       />
                     </div>
                   </div>

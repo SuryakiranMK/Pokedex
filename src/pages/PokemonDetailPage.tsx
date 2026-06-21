@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useMemo } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { FiArrowLeft, FiHeart, FiVolume2, FiChevronLeft, FiChevronRight, FiChevronDown } from 'react-icons/fi'
@@ -311,6 +311,40 @@ const PokemonDetailPage: React.FC = () => {
 
   const { data: evoChain } = useEvolutionChain(chainId)
 
+  const levelUpMoves = useMemo(() => {
+    if (!pokemon?.moves) return []
+    return pokemon.moves
+      .filter((m) => m.version_group_details.some((v) => v.move_learn_method.name === 'level-up'))
+      .map((m) => ({
+        name: m.move.name,
+        level: m.version_group_details.find((v) => v.move_learn_method.name === 'level-up')?.level_learned_at ?? 0,
+        method: 'level-up' as const,
+      }))
+      .sort((a, b) => a.level - b.level)
+  }, [pokemon?.moves])
+
+  const tmMoves = useMemo(() => {
+    if (!pokemon?.moves) return []
+    return pokemon.moves
+      .filter((m) => m.version_group_details.some((v) => v.move_learn_method.name === 'machine'))
+      .map((m) => ({ name: m.move.name, level: 0, method: 'machine' as const }))
+  }, [pokemon?.moves])
+
+  const eggMoves = useMemo(() => {
+    if (!pokemon?.moves) return []
+    return pokemon.moves
+      .filter((m) => m.version_group_details.some((v) => v.move_learn_method.name === 'egg'))
+      .map((m) => ({ name: m.move.name, level: 0, method: 'egg' as const }))
+  }, [pokemon?.moves])
+
+  const allMoves = useMemo(() => [...levelUpMoves, ...tmMoves, ...eggMoves], [levelUpMoves, tmMoves, eggMoves])
+
+  const filteredMoves = useMemo(() => {
+    return allMoves
+      .filter((m) => moveFilter === 'all' || m.method === moveFilter)
+      .filter((m) => !moveSearch || m.name.includes(moveSearch.toLowerCase()))
+  }, [allMoves, moveFilter, moveSearch])
+
   if (pokemonLoading || speciesLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -350,28 +384,6 @@ const PokemonDetailPage: React.FC = () => {
       default:             return getPokemonArtwork(pokemon.id)
     }
   }
-
-  const levelUpMoves = pokemon.moves
-    .filter((m) => m.version_group_details.some((v) => v.move_learn_method.name === 'level-up'))
-    .map((m) => ({
-      name: m.move.name,
-      level: m.version_group_details.find((v) => v.move_learn_method.name === 'level-up')?.level_learned_at ?? 0,
-      method: 'level-up' as const,
-    }))
-    .sort((a, b) => a.level - b.level)
-
-  const tmMoves = pokemon.moves
-    .filter((m) => m.version_group_details.some((v) => v.move_learn_method.name === 'machine'))
-    .map((m) => ({ name: m.move.name, level: 0, method: 'machine' as const }))
-
-  const eggMoves = pokemon.moves
-    .filter((m) => m.version_group_details.some((v) => v.move_learn_method.name === 'egg'))
-    .map((m) => ({ name: m.move.name, level: 0, method: 'egg' as const }))
-
-  const allMoves = [...levelUpMoves, ...tmMoves, ...eggMoves]
-  const filteredMoves = allMoves
-    .filter((m) => moveFilter === 'all' || m.method === moveFilter)
-    .filter((m) => !moveSearch || m.name.includes(moveSearch.toLowerCase()))
 
   const TABS = ['stats', 'evolution', 'abilities', 'moves', 'sprites'] as const
 

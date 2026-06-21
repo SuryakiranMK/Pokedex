@@ -98,7 +98,7 @@ const PokemonPicker: React.FC<{
     : []
 
   const { data: pokemon } = useQuery({
-    queryKey: ['battle-pokemon', selected],
+    queryKey: ['pokemon', selected],
     queryFn: () => fetchPokemon(selected!),
     enabled: !!selected,
     staleTime: 1000 * 60 * 30,
