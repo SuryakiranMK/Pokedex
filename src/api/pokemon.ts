@@ -16,11 +16,6 @@ export const fetchPokemon = async (nameOrId: string | number): Promise<Pokemon> 
   return data
 }
 
-export const fetchAllPokemonNames = async (): Promise<{ name: string; url: string }[]> => {
-  const { data } = await api.get('/pokemon?limit=10000&offset=0')
-  return data.results
-}
-
 // ---------- Species ----------
 export const fetchPokemonSpecies = async (nameOrId: string | number): Promise<PokemonSpecies> => {
   const { data } = await api.get(`/pokemon-species/${nameOrId}`)

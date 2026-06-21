@@ -3,10 +3,11 @@ import { useInfiniteQuery, useQuery, useQueries } from '@tanstack/react-query'
 import {
   fetchPokemon, fetchPokemonList, fetchPokemonSpecies,
   fetchEvolutionChain, fetchType, fetchAbility, fetchMove,
-  fetchRegion, fetchAllRegions, fetchAllPokemonNames, getIdFromUrl,
+  fetchRegion, fetchAllRegions, getIdFromUrl,
 } from '../api/pokemon'
 import { GENERATIONS } from '../utils/constants'
 import type { Pokemon } from '../types'
+import { pokemonNames } from '../data/pokemonNames'
 
 // ---- Pokémon list (infinite) ----
 export const usePokemonInfinite = (limit = 150, generations: number[] = []) => {
@@ -117,12 +118,11 @@ export const useRegion = (nameOrId: string | number) =>
   })
 
 // ---- All Pokémon names (for search) ----
-export const useAllPokemonNames = () =>
-  useQuery({
-    queryKey: ['all-pokemon-names'],
-    queryFn: fetchAllPokemonNames,
-    staleTime: 1000 * 60 * 60 * 24,
-  })
+export const useAllPokemonNames = () => ({
+  data: pokemonNames,
+  isLoading: false,
+  isSuccess: true,
+})
 
 // ---- Multi-Pokémon (for compare, characters, etc.) ----
 export const useMultiplePokemon = (ids: (number | string)[]) => {
