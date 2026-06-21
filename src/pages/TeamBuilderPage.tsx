@@ -6,7 +6,7 @@ import {
 } from 'recharts'
 import { useQuery } from '@tanstack/react-query'
 import { fetchPokemon, getPokemonArtwork } from '../api/pokemon'
-import { useTeamStore } from '../store'
+import { useTeamStore, useUIStore } from '../store'
 import { useAllPokemonNames } from '../hooks/usePokeAPI'
 import TypeBadge from '../components/ui/TypeBadge'
 import { STAT_LABELS } from '../utils/constants'
@@ -25,6 +25,7 @@ const analyzeTeam = (team: TeamPokemon[]) => {
 
 const TeamBuilderPage: React.FC = () => {
   const { currentTeam, teams, addToTeam, removeFromTeam, saveTeam, loadTeam, deleteTeam, renameTeam, clearCurrentTeam } = useTeamStore()
+  const { searchHistory, addSearchHistory, clearSearchHistory } = useUIStore()
   const [search, setSearch] = useState('')
   const [showSearch, setShowSearch] = useState(false)
   const [showSaveDialog, setShowSaveDialog] = useState(false)
@@ -33,8 +34,22 @@ const TeamBuilderPage: React.FC = () => {
   const [editName, setEditName] = useState('')
 
   const { data: allNames } = useAllPokemonNames()
+  
+  // Suggestions
   const suggestions = search.length >= 1
-    ? (allNames ?? []).filter((p) => p.name.includes(search.toLowerCase())).slice(0, 12)
+    ? (() => {
+        const q = search.toLowerCase().trim()
+        const starts = (allNames ?? []).filter((p) => p.name.toLowerCase().startsWith(q))
+        const contains = (allNames ?? []).filter((p) => !p.name.toLowerCase().startsWith(q) && p.name.toLowerCase().includes(q))
+        return [...starts, ...contains].slice(0, 12)
+      })()
+    : (allNames ?? []).slice(0, 12)
+
+  const recentPokemon = !search && searchHistory.length > 0
+    ? searchHistory
+        .map((name) => (allNames ?? []).find((p) => p.name === name))
+        .filter((p): p is { name: string; url: string } => !!p)
+        .slice(0, 4)
     : []
 
   const coverage = analyzeTeam(currentTeam)
@@ -50,6 +65,7 @@ const TeamBuilderPage: React.FC = () => {
 
   const addPokemon = async (name: string, id: number) => {
     try {
+      addSearchHistory(name)
       const data = await fetchPokemon(id)
       const teamPokemon: TeamPokemon = {
         id: data.id,
@@ -140,37 +156,75 @@ const TeamBuilderPage: React.FC = () => {
                 exit={{ opacity: 0, height: 0 }}
                 className="glass-card p-4 rounded-2xl overflow-hidden"
               >
-                <div className="flex items-center gap-3 mb-3">
-                  <div className="relative flex-1">
-                    <FiSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={16} />
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="relative flex-1 flex items-center glass rounded-xl border border-white/10 transition-all focus-within:border-indigo-500/60 focus-within:shadow-lg focus-within:shadow-indigo-500/10">
+                    <div className="pl-4 flex items-center justify-center text-gray-400 pointer-events-none flex-shrink-0">
+                      <FiSearch size={16} />
+                    </div>
                     <input
                       autoFocus
                       value={search}
                       onChange={(e) => setSearch(e.target.value)}
                       placeholder="Search Pokémon to add..."
-                      className="w-full pl-11 pr-4 py-2.5 glass rounded-xl border border-white/10 bg-transparent outline-none text-sm transition-all focus:border-indigo-500/60 focus:shadow-lg focus:shadow-indigo-500/10"
+                      className="flex-1 bg-transparent pl-3 pr-4 py-2.5 outline-none text-sm animate-none"
                       style={{ color: 'var(--text-primary)' }}
                     />
                   </div>
-                  <button onClick={() => setShowSearch(false)} className="text-gray-400 hover:text-white"><FiX /></button>
+                  <button onClick={() => { setShowSearch(false); setSearch('') }} className="text-gray-400 hover:text-white"><FiX /></button>
                 </div>
+
+                {/* Recent Searches */}
+                {!search && recentPokemon.length > 0 && (
+                  <div className="mb-4">
+                    <div className="flex items-center justify-between mb-2 px-1">
+                      <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Recent Searches</span>
+                      <button onClick={clearSearchHistory} className="text-xs text-indigo-400 hover:text-indigo-300">Clear</button>
+                    </div>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+                      {recentPokemon.map((p) => {
+                        const id = extractIdFromUrl(p.url)
+                        const inTeam = currentTeam.some((t) => t.id === id)
+                        return (
+                          <button
+                            key={`recent-${p.name}`}
+                            disabled={inTeam}
+                            onClick={() => addPokemon(p.name, id)}
+                            className={`flex items-center gap-2 p-2 rounded-xl text-xs glass transition-all text-left ${inTeam ? 'opacity-40 cursor-not-allowed' : 'hover:bg-white/8 cursor-pointer'}`}
+                          >
+                            <img src={getPokemonArtwork(id)} alt="" className="w-8 h-8 object-contain flex-shrink-0" />
+                            <span className="capitalize truncate font-medium">{capitalize(p.name)}</span>
+                          </button>
+                        )
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {/* Live suggestions */}
                 {suggestions.length > 0 && (
-                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
-                    {suggestions.map((p) => {
-                      const id = extractIdFromUrl(p.url)
-                      const inTeam = currentTeam.some((t) => t.id === id)
-                      return (
-                        <button
-                          key={p.name}
-                          disabled={inTeam}
-                          onClick={() => addPokemon(p.name, id)}
-                          className={`flex items-center gap-2 p-2 rounded-xl text-xs glass transition-all ${inTeam ? 'opacity-40 cursor-not-allowed' : 'hover:bg-white/8 cursor-pointer'}`}
-                        >
-                          <img src={getPokemonArtwork(id)} alt="" className="w-8 h-8 object-contain" />
-                          <span className="capitalize truncate font-medium">{capitalize(p.name)}</span>
-                        </button>
-                      )
-                    })}
+                  <div>
+                    {!search && (
+                      <div className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 px-1">
+                        Suggested Pokémon
+                      </div>
+                    )}
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+                      {suggestions.map((p) => {
+                        const id = extractIdFromUrl(p.url)
+                        const inTeam = currentTeam.some((t) => t.id === id)
+                        return (
+                          <button
+                            key={p.name}
+                            disabled={inTeam}
+                            onClick={() => addPokemon(p.name, id)}
+                            className={`flex items-center gap-2 p-2 rounded-xl text-xs glass transition-all text-left ${inTeam ? 'opacity-40 cursor-not-allowed' : 'hover:bg-white/8 cursor-pointer'}`}
+                          >
+                            <img src={getPokemonArtwork(id)} alt="" className="w-8 h-8 object-contain flex-shrink-0" />
+                            <span className="capitalize truncate font-medium">{capitalize(p.name)}</span>
+                          </button>
+                        )
+                      })}
+                    </div>
                   </div>
                 )}
               </motion.div>

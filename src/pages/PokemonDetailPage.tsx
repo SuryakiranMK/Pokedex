@@ -1,14 +1,14 @@
 import React, { useState } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { FiArrowLeft, FiHeart, FiVolume2, FiChevronLeft, FiChevronRight } from 'react-icons/fi'
+import { FiArrowLeft, FiHeart, FiVolume2, FiChevronLeft, FiChevronRight, FiChevronDown } from 'react-icons/fi'
 import { FaHeart } from 'react-icons/fa'
 import { useQuery } from '@tanstack/react-query'
 import TypeBadge from '../components/ui/TypeBadge'
 import StatBar from '../components/ui/StatBar'
 import { usePokemon, usePokemonSpecies, useEvolutionChain, useAbility } from '../hooks/usePokeAPI'
 import { useFavoritesStore } from '../store'
-import { fetchEvolutionChain, fetchPokemon, getPokemonArtwork, getPokemonArtworkShiny, getPokemonHomeSprite, getIdFromUrl } from '../api/pokemon'
+import { fetchEvolutionChain, fetchPokemon, getPokemonArtwork, getPokemonArtworkShiny, getPokemonHomeSprite, getIdFromUrl, fetchMove, fetchAbility } from '../api/pokemon'
 import { TYPE_COLORS, STAT_LABELS, GENERATIONS } from '../utils/constants'
 import { capitalize, formatHeight, formatWeight, formatPokemonId, getGenderRatio } from '../utils/helpers'
 import { soundService } from '../services/sound'
@@ -69,6 +69,223 @@ const EvolutionChainDisplay: React.FC<{ chain: ChainLink }> = ({ chain }) => {
     )
   }
   return <div className="flex flex-wrap items-center justify-center gap-4 py-4">{buildNodes(chain)}</div>
+}
+
+// ── Move Card Component ───────────────────────────────────
+interface MoveCardProps {
+  m: {
+    name: string
+    level: number
+    method: 'level-up' | 'machine' | 'egg'
+  }
+}
+
+const MoveCard: React.FC<MoveCardProps> = ({ m }) => {
+  const [expanded, setExpanded] = useState(false)
+
+  const { data: moveDetails, isLoading } = useQuery({
+    queryKey: ['move-details', m.name],
+    queryFn: () => fetchMove(m.name),
+    enabled: expanded,
+    staleTime: 1000 * 60 * 60 * 24,
+  })
+
+  return (
+    <div
+      onClick={() => setExpanded(!expanded)}
+      className={`glass rounded-2xl p-3.5 border transition-all duration-200 cursor-pointer text-xs h-fit ${
+        expanded
+          ? 'border-indigo-500/30 bg-white/5 shadow-lg shadow-indigo-500/5'
+          : 'border-white/5 hover:border-white/10 hover:bg-white/5'
+      }`}
+    >
+      <div className="flex items-center justify-between gap-2">
+        <span className="capitalize font-bold text-sm tracking-tight text-white">{m.name.replace(/-/g, ' ')}</span>
+        <div className="flex items-center gap-2">
+          {m.method === 'level-up' && m.level > 0 && (
+            <span className="text-indigo-400 font-bold bg-indigo-500/10 px-2 py-0.5 rounded-lg border border-indigo-500/20 flex-shrink-0">
+              Lv.{m.level}
+            </span>
+          )}
+          {m.method === 'machine' && (
+            <span className="text-yellow-400 font-bold bg-yellow-500/10 px-2 py-0.5 rounded-lg border border-yellow-500/20 flex-shrink-0">
+              TM
+            </span>
+          )}
+          {m.method === 'egg' && (
+            <span className="text-pink-400 font-bold bg-pink-500/10 px-2 py-0.5 rounded-lg border border-pink-500/20 flex-shrink-0">
+              Egg
+            </span>
+          )}
+          <motion.span
+            animate={{ rotate: expanded ? 180 : 0 }}
+            className="text-gray-400 flex-shrink-0"
+          >
+            <FiChevronDown size={14} />
+          </motion.span>
+        </div>
+      </div>
+
+      <AnimatePresence initial={false}>
+        {expanded && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {isLoading ? (
+              <div className="flex items-center justify-center py-4 gap-2 text-xs text-gray-400">
+                <div className="pokeball-spinner w-4 h-4" />
+                <span>Loading details...</span>
+              </div>
+            ) : moveDetails ? (
+              <div className="mt-3 pt-3 border-t border-white/5 space-y-4">
+                {/* Stats Row */}
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center">
+                  {/* Type */}
+                  <div className="glass p-2.5 rounded-xl border border-white/5 flex flex-col items-center justify-center">
+                    <span className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider mb-1.5">Type</span>
+                    <TypeBadge type={moveDetails.type.name} size="sm" />
+                  </div>
+
+                  {/* Category */}
+                  <div className="glass p-2.5 rounded-xl border border-white/5 flex flex-col items-center justify-center">
+                    <span className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider mb-2">Category</span>
+                    <span
+                      className={`inline-flex items-center px-2.5 py-1 rounded-full font-bold uppercase text-[9px] tracking-wider ${
+                        moveDetails.damage_class.name === 'physical'
+                          ? 'bg-red-500/10 text-red-400 border border-red-500/20 shadow-[0_0_8px_rgba(239,68,68,0.15)]'
+                          : moveDetails.damage_class.name === 'special'
+                          ? 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 shadow-[0_0_8px_rgba(99,102,241,0.15)]'
+                          : 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 shadow-[0_0_8px_rgba(16,185,129,0.15)]'
+                      }`}
+                    >
+                      {moveDetails.damage_class.name}
+                    </span>
+                  </div>
+
+                  {/* Power */}
+                  <div className="glass p-2.5 rounded-xl border border-white/5 flex flex-col items-center justify-center">
+                    <span className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider mb-1">Power</span>
+                    <span className="text-sm font-black font-mono text-white">{moveDetails.power ?? '—'}</span>
+                  </div>
+
+                  {/* Accuracy & PP */}
+                  <div className="glass p-2.5 rounded-xl border border-white/5 flex flex-col items-center justify-center">
+                    <span className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider mb-1">Accuracy / PP</span>
+                    <span className="text-xs font-bold font-mono text-white">
+                      {moveDetails.accuracy ? `${moveDetails.accuracy}%` : '—'} · {moveDetails.pp ?? '—'} PP
+                    </span>
+                  </div>
+                </div>
+
+                {/* Description Box */}
+                <div className="glass-dark p-3 rounded-xl border border-white/5 text-left">
+                  <span className="text-[10px] text-indigo-400 font-bold uppercase tracking-wider block mb-1">Effect</span>
+                  <p className="text-gray-300 leading-relaxed font-normal text-xs">
+                    {moveDetails.flavor_text_entries?.find((e) => e.language.name === 'en')?.flavor_text ??
+                      moveDetails.effect_entries?.find((e) => e.language.name === 'en')?.short_effect ??
+                      'No description available.'}
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <div className="text-center py-4 text-xs text-red-400">Failed to load details.</div>
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  )
+}
+
+// ── Ability Card Component ────────────────────────────────
+interface AbilityCardProps {
+  a: {
+    ability: { name: string }
+    is_hidden: boolean
+  }
+}
+
+const AbilityCard: React.FC<AbilityCardProps> = ({ a }) => {
+  const [expanded, setExpanded] = useState(false)
+
+  const { data: abilityDetails, isLoading } = useQuery({
+    queryKey: ['ability-details', a.ability.name],
+    queryFn: () => fetchAbility(a.ability.name),
+    enabled: expanded,
+    staleTime: 1000 * 60 * 60 * 24,
+  })
+
+  return (
+    <div
+      onClick={() => setExpanded(!expanded)}
+      className={`glass rounded-2xl p-4 border transition-all duration-200 cursor-pointer text-xs h-fit ${
+        expanded
+          ? 'border-purple-500/30 bg-white/5 shadow-lg shadow-purple-500/5'
+          : 'border-white/5 hover:border-white/10 hover:bg-white/5'
+      }`}
+    >
+      <div className="flex items-center justify-between gap-2">
+        <span className="capitalize font-bold text-sm tracking-tight text-white">{a.ability.name.replace(/-/g, ' ')}</span>
+        <div className="flex items-center gap-2">
+          {a.is_hidden && (
+            <span className="text-[10px] px-2.5 py-0.5 rounded-full bg-purple-500/10 text-purple-400 font-bold border border-purple-500/20 shadow-[0_0_8px_rgba(168,85,247,0.15)] uppercase tracking-wider">
+              Hidden
+            </span>
+          )}
+          <motion.span
+            animate={{ rotate: expanded ? 180 : 0 }}
+            className="text-gray-400 flex-shrink-0"
+          >
+            <FiChevronDown size={14} />
+          </motion.span>
+        </div>
+      </div>
+
+      <AnimatePresence initial={false}>
+        {expanded && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {isLoading ? (
+              <div className="flex items-center justify-center py-4 gap-2 text-xs text-gray-400">
+                <div className="pokeball-spinner w-4 h-4" />
+                <span>Loading details...</span>
+              </div>
+            ) : abilityDetails ? (
+              <div className="mt-3 pt-3 border-t border-white/5 space-y-3 text-left">
+                <div className="flex gap-2">
+                  <div className="glass px-3 py-1.5 rounded-xl border border-white/5 text-[10px] text-gray-400 font-semibold uppercase tracking-wider">
+                    Generation: <span className="text-white font-mono">{abilityDetails.generation.name.replace(/-/g, ' ').toUpperCase()}</span>
+                  </div>
+                </div>
+
+                <div className="glass-dark p-3 rounded-xl border border-white/5">
+                  <span className="text-[10px] text-purple-400 font-bold uppercase tracking-wider block mb-1">Ability Effect</span>
+                  <p className="text-gray-300 leading-relaxed font-normal text-xs">
+                    {abilityDetails.effect_entries?.find((e) => e.language.name === 'en')?.effect ??
+                      abilityDetails.flavor_text_entries?.find((e) => e.language.name === 'en')?.flavor_text ??
+                      'No description available.'}
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <div className="text-center py-4 text-xs text-red-400">Failed to load details.</div>
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  )
 }
 
 // ── Sprite Gallery ────────────────────────────────────────
@@ -364,18 +581,7 @@ const PokemonDetailPage: React.FC = () => {
               <h2 className="font-bold text-lg mb-6">Abilities</h2>
               <div className="space-y-3">
                 {pokemon.abilities.map((a) => (
-                  <motion.div
-                    key={a.ability.name}
-                    className="glass p-4 rounded-xl border border-white/5 hover:border-indigo-500/30 transition-all"
-                    whileHover={{ x: 4 }}
-                  >
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="font-bold capitalize text-sm">{capitalize(a.ability.name)}</span>
-                      {a.is_hidden && (
-                        <span className="text-xs px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-400 font-bold">Hidden</span>
-                      )}
-                    </div>
-                  </motion.div>
+                  <AbilityCard key={a.ability.name} a={a} />
                 ))}
               </div>
             </div>
@@ -403,16 +609,9 @@ const PokemonDetailPage: React.FC = () => {
                   style={{ color: 'var(--text-primary)' }}
                 />
               </div>
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 max-h-80 overflow-y-auto pr-1">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 items-start">
                 {filteredMoves.map((m) => (
-                  <div key={`${m.name}-${m.method}`} className="glass p-2.5 rounded-xl text-xs flex items-center justify-between gap-2">
-                    <span className="capitalize font-medium truncate">{capitalize(m.name)}</span>
-                    {m.method === 'level-up' && m.level > 0 && (
-                      <span className="text-indigo-400 font-bold flex-shrink-0">Lv.{m.level}</span>
-                    )}
-                    {m.method === 'machine' && <span className="text-yellow-400 flex-shrink-0">TM</span>}
-                    {m.method === 'egg' && <span className="text-pink-400 flex-shrink-0">Egg</span>}
-                  </div>
+                  <MoveCard key={`${m.name}-${m.method}`} m={m} />
                 ))}
               </div>
             </div>

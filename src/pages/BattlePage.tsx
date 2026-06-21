@@ -8,6 +8,7 @@ import { TYPE_COLORS } from '../utils/constants'
 import { capitalize, extractIdFromUrl } from '../utils/helpers'
 import TypeBadge from '../components/ui/TypeBadge'
 import { soundService } from '../services/sound'
+import { useUIStore } from '../store'
 
 // Type chart for effectiveness
 const TYPE_CHART: Record<string, Record<string, number>> = {
@@ -76,9 +77,24 @@ const PokemonPicker: React.FC<{
   label, selected, onSelect, isStriking = false, isHit = false,
 }) => {
   const [search, setSearch] = useState('')
+  const [focused, setFocused] = useState(false)
   const { data: allNames } = useAllPokemonNames()
+  const { searchHistory, addSearchHistory, clearSearchHistory } = useUIStore()
+
   const suggestions = search.length >= 1
-    ? (allNames ?? []).filter((p) => p.name.includes(search.toLowerCase())).slice(0, 8)
+    ? (() => {
+        const q = search.toLowerCase().trim()
+        const starts = (allNames ?? []).filter((p) => p.name.toLowerCase().startsWith(q))
+        const contains = (allNames ?? []).filter((p) => !p.name.toLowerCase().startsWith(q) && p.name.toLowerCase().includes(q))
+        return [...starts, ...contains].slice(0, 8)
+      })()
+    : (allNames ?? []).slice(0, 8)
+
+  const recentPokemon = !search && searchHistory.length > 0
+    ? searchHistory
+        .map((name) => (allNames ?? []).find((p) => p.name === name))
+        .filter((p): p is { name: string; url: string } => !!p)
+        .slice(0, 4)
     : []
 
   const { data: pokemon } = useQuery({
@@ -89,6 +105,7 @@ const PokemonPicker: React.FC<{
   })
 
   const typeColor = pokemon ? TYPE_COLORS[pokemon.types[0]?.type.name ?? 'normal'] : null
+  const showDropdown = focused
 
   return (
     <div className="flex flex-col items-center gap-3 flex-1 w-full">
@@ -149,36 +166,80 @@ const PokemonPicker: React.FC<{
       </motion.div>
 
       {/* Search */}
-      <div className="w-full relative">
-        <FiSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={16} />
+      <div className="w-full relative flex items-center glass rounded-xl border border-white/10 transition-all focus-within:border-indigo-500/60 focus-within:shadow-lg focus-within:shadow-indigo-500/10">
+        <div className="pl-4 flex items-center justify-center text-gray-400 pointer-events-none flex-shrink-0">
+          <FiSearch size={16} />
+        </div>
         <input
           value={search}
           onChange={(e) => setSearch(e.target.value)}
+          onFocus={() => setFocused(true)}
+          onBlur={() => setTimeout(() => setFocused(false), 200)}
           placeholder="Search Pokémon..."
-          className="w-full pl-11 pr-4 py-2.5 glass rounded-xl border border-white/10 bg-transparent outline-none text-xs transition-all focus:border-indigo-500/60 focus:shadow-lg focus:shadow-indigo-500/10"
+          className="flex-1 bg-transparent pl-3 pr-4 py-2.5 outline-none text-xs"
           style={{ color: 'var(--text-primary)' }}
         />
         <AnimatePresence>
-          {suggestions.length > 0 && (
+          {showDropdown && (
             <motion.div
               initial={{ opacity: 0, y: -8 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -8 }}
-              className="absolute top-full mt-1 left-0 right-0 glass-dark rounded-xl overflow-hidden z-20 border border-white/10"
+              className="absolute top-full mt-1 left-0 right-0 glass-dark rounded-xl overflow-hidden z-20 border border-white/10 max-h-60 overflow-y-auto"
             >
-              {suggestions.map((p) => {
-                const id = extractIdFromUrl(p.url)
-                return (
-                  <button
-                    key={p.name}
-                    onClick={() => { onSelect(id, p.name); setSearch(''); soundService.play('success') }}
-                    className="flex items-center gap-2 w-full px-3 py-2 hover:bg-white/5 text-xs transition-colors"
-                  >
-                    <img src={getPokemonArtwork(id)} alt="" className="w-7 h-7 object-contain" />
-                    <span className="capitalize">{capitalize(p.name)}</span>
-                  </button>
-                )
-              })}
+              {!search && recentPokemon.length > 0 && (
+                <div className="p-2 border-b border-white/5">
+                  <div className="flex items-center justify-between px-2 mb-1">
+                    <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">Recent</span>
+                    <button onClick={(e) => { e.stopPropagation(); clearSearchHistory() }} className="text-[10px] text-indigo-400 hover:text-indigo-300">Clear</button>
+                  </div>
+                  {recentPokemon.map((p) => {
+                    const id = extractIdFromUrl(p.url)
+                    return (
+                      <button
+                        key={`recent-${p.name}`}
+                        onClick={() => {
+                          onSelect(id, p.name)
+                          addSearchHistory(p.name)
+                          setSearch('')
+                          soundService.play('success')
+                        }}
+                        className="flex items-center gap-2 w-full px-3 py-1.5 hover:bg-white/5 text-xs text-left transition-colors"
+                      >
+                        <img src={getPokemonArtwork(id)} alt="" className="w-6 h-6 object-contain flex-shrink-0" />
+                        <span className="capitalize">{capitalize(p.name)}</span>
+                      </button>
+                    )
+                  })}
+                </div>
+              )}
+              {suggestions.length > 0 && (
+                <div className="p-1">
+                  {!search && (
+                    <div className="px-2 py-1 text-[10px] font-semibold text-gray-400 uppercase tracking-wider">
+                      Suggested
+                    </div>
+                  )}
+                  {suggestions.map((p) => {
+                    const id = extractIdFromUrl(p.url)
+                    return (
+                      <button
+                        key={p.name}
+                        onClick={() => {
+                          onSelect(id, p.name)
+                          addSearchHistory(p.name)
+                          setSearch('')
+                          soundService.play('success')
+                        }}
+                        className="flex items-center gap-2 w-full px-3 py-1.5 hover:bg-white/5 text-xs text-left transition-colors"
+                      >
+                        <img src={getPokemonArtwork(id)} alt="" className="w-6 h-6 object-contain flex-shrink-0" />
+                        <span className="capitalize">{capitalize(p.name)}</span>
+                      </button>
+                    )
+                  })}
+                </div>
+              )}
             </motion.div>
           )}
         </AnimatePresence>

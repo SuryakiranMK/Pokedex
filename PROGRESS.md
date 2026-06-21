@@ -113,6 +113,48 @@
 
 ---
 
+## ✅ Session 5 — Search Bar Layout & Behavior Rework
+
+### Search Bar Layout
+- [x] Converted all absolute-positioned search icons to flex row siblings in search containers, resolving text overlay bugs.
+- [x] Shifted focus rings to the container wrappers utilizing the `focus-within` CSS selectors.
+
+### Suggestions & History Integration
+- [x] Adjusted autocomplete suggestions: when empty, inputs show the first 8-12 Pokémon starting from Pokédex #1.
+- [x] Integrated search history across all site search pages (Navbar, Home, Compare, Team Builder, and Battle pages).
+- [x] Stood up a priority stack: recent searches are highlighted at the top, with recommended starting Pokémon right underneath.
+- [x] Added click hooks so choosing suggestions anywhere writes to the shared search history.
+
+---
+
+## ✅ Session 6 — Moves Tab Details & Search Prioritization
+
+### Moves Tab Rework
+- [x] Integrated `MoveCard` component inside the Pokémon Detail page (`PokemonDetailPage.tsx`).
+- [x] Implemented lazy-loaded move queries via react-query (`useQuery`) that only fetch when a card is expanded.
+- [x] Displayed move details (Damage class badge, Type badge, stats for Power/Accuracy/PP, and detailed descriptions).
+- [x] Adopted a clean 2-column layout for moves list to comfortably fit text descriptions.
+
+### Suggestion Prefix Prioritization
+- [x] Reranked suggestions across all search boxes (`SearchBar.tsx`, `ComparePage.tsx`, `TeamBuilderPage.tsx`, `BattlePage.tsx`).
+- [x] Query matching now prioritizes starting-prefix results at the top in ascending Pokédex ID order before displaying contains/fuzzy matches.
+
+---
+
+## ✅ Session 7 — Move Details Redesign & Expandable Abilities
+
+### Moves Detail Card Redesign
+- [x] Reworked move details layouts with clean centered stats widgets (Type, Category, Power, Accuracy/PP) and glowing shadows.
+- [x] Wrapped move descriptions inside a custom dark-tinted glass description panel with indigo title markings.
+- [x] Removed fixed height scroll boundaries (`max-h-[500px] overflow-y-auto`) from the moves container grid, enabling full-height expansion.
+
+### Click-to-Expand Abilities
+- [x] Added `fetchAbility` API mapping inside `PokemonDetailPage.tsx`.
+- [x] Created the `AbilityCard` component to support lazy-loaded accordion detail displays on the Abilities tab.
+- [x] Exposed generation indexes and full description boxes on click with purple glowing theme accents.
+
+---
+
 ## ❌ REMAINING
 - None! All tasks are fully completed.
 

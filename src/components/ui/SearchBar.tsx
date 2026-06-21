@@ -30,10 +30,13 @@ const SearchBar: React.FC<SearchBarProps> = ({
   const { data: allPokemon } = useAllPokemonNames()
 
   const suggestions = query.length >= 1
-    ? (allPokemon ?? [])
-      .filter((p) => fuzzyMatch(p.name, query) || p.name.includes(query.toLowerCase()))
-      .slice(0, 8)
-    : []
+    ? (() => {
+        const q = query.toLowerCase().trim()
+        const starts = (allPokemon ?? []).filter((p) => p.name.toLowerCase().startsWith(q))
+        const contains = (allPokemon ?? []).filter((p) => !p.name.toLowerCase().startsWith(q) && (fuzzyMatch(p.name, q) || p.name.toLowerCase().includes(q)))
+        return [...starts, ...contains].slice(0, 8)
+      })()
+    : (allPokemon ?? []).slice(0, 8)
 
   const handleSelect = useCallback((name: string) => {
     soundService.play('navigation')
@@ -46,7 +49,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (!focused) return
-    const items = query ? suggestions : []
+    const items = suggestions
     if (e.key === 'ArrowDown') { e.preventDefault(); setSelectedIdx((i) => Math.min(i + 1, items.length - 1)) }
     else if (e.key === 'ArrowUp') { e.preventDefault(); setSelectedIdx((i) => Math.max(i - 1, -1)) }
     else if (e.key === 'Enter') {
@@ -65,7 +68,9 @@ const SearchBar: React.FC<SearchBarProps> = ({
         className="relative"
       >
         <div className={`relative flex items-center glass rounded-2xl border transition-all duration-300 ${focused ? 'border-indigo-500/60 shadow-lg shadow-indigo-500/20' : 'border-white/10'}`}>
-          <FiSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={18} />
+          <div className="pl-4 flex items-center justify-center text-gray-400 pointer-events-none flex-shrink-0">
+            <FiSearch size={18} />
+          </div>
           <input
             ref={inputRef}
             type="text"
@@ -75,7 +80,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
             onBlur={() => setTimeout(() => setFocused(false), 200)}
             onKeyDown={handleKeyDown}
             placeholder={placeholder}
-            className="w-full bg-transparent pl-11 pr-10 py-3.5 text-sm outline-none placeholder:text-gray-500 font-medium"
+            className="flex-1 bg-transparent pl-3 pr-10 py-3.5 text-sm outline-none placeholder:text-gray-500 font-medium"
             aria-label="Search Pokémon"
             aria-autocomplete="list"
             autoComplete="off"
@@ -100,7 +105,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
           >
             {/* Search history (when no query) */}
             {!query && searchHistory.length > 0 && (
-              <div className="p-3">
+              <div className="p-3 border-b border-white/5">
                 <div className="flex items-center justify-between px-2 mb-2">
                   <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Recent</span>
                   <button onClick={clearSearchHistory} className="text-xs text-indigo-400 hover:text-indigo-300">Clear</button>
@@ -109,9 +114,9 @@ const SearchBar: React.FC<SearchBarProps> = ({
                   <button
                     key={term}
                     onClick={() => handleSelect(term)}
-                    className="flex items-center gap-3 w-full px-3 py-2 rounded-xl hover:bg-white/5 transition-colors text-sm"
+                    className="flex items-center gap-3 w-full px-3 py-2 rounded-xl hover:bg-white/5 transition-colors text-sm text-left"
                   >
-                    <FiClock className="text-gray-500" size={14} />
+                    <FiClock className="text-gray-500 flex-shrink-0" size={14} />
                     <span className="capitalize">{capitalize(term)}</span>
                   </button>
                 ))}
@@ -121,16 +126,21 @@ const SearchBar: React.FC<SearchBarProps> = ({
             {/* Live suggestions */}
             {suggestions.length > 0 && (
               <div className="p-2">
+                {!query && (
+                  <div className="px-3 py-1.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                    Suggested Pokémon
+                  </div>
+                )}
                 {suggestions.map((p, i) => {
                   const id = extractIdFromUrl(p.url)
                   return (
                     <motion.button
                       key={p.name}
                       onClick={() => handleSelect(p.name)}
-                      className={`flex items-center gap-3 w-full px-3 py-2 rounded-xl transition-colors text-sm ${i === selectedIdx ? 'bg-indigo-500/20 text-indigo-300' : 'hover:bg-white/5'}`}
+                      className={`flex items-center gap-3 w-full px-3 py-2 rounded-xl transition-colors text-sm text-left ${i === selectedIdx ? 'bg-indigo-500/20 text-indigo-300' : 'hover:bg-white/5'}`}
                       whileHover={{ x: 4 }}
                     >
-                      <img src={getPokemonArtwork(id)} alt="" className="w-8 h-8 object-contain" />
+                      <img src={getPokemonArtwork(id)} alt="" className="w-8 h-8 object-contain flex-shrink-0" />
                       <span className="capitalize font-medium">{capitalize(p.name)}</span>
                       <span className="ml-auto text-xs text-gray-500 font-mono">#{String(id).padStart(4, '0')}</span>
                     </motion.button>
