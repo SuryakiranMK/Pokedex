@@ -2,6 +2,7 @@ import React, { lazy, Suspense } from 'react'
 import { createBrowserRouter, Navigate } from 'react-router-dom'
 import RootLayout from '../layouts/RootLayout'
 import LoadingScreen from '../components/ui/LoadingScreen'
+import GlobalErrorBoundary from '../components/ui/GlobalErrorBoundary'
 
 // Lazy loaded pages
 const LandingPage = lazy(() => import('../pages/LandingPage'))
@@ -25,6 +26,7 @@ export const router = createBrowserRouter([
   {
     path: '/',
     element: <RootLayout />,
+    errorElement: <GlobalErrorBoundary />,
     children: [
       {
         index: true,
