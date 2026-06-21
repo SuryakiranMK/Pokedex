@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { useLocation } from 'react-router-dom'
 import Navbar from '../components/layout/Navbar'
 import ParticleCanvas from '../components/ui/ParticleCanvas'
+import BackgroundWatermarks from '../components/ui/BackgroundWatermarks'
 
 const pageVariants = {
   initial: { opacity: 0, y: 16 },
@@ -21,6 +22,9 @@ const RootLayout: React.FC = () => {
 
       {/* Particle system */}
       <ParticleCanvas count={50} />
+
+      {/* Dynamic page-specific background watermarks */}
+      <BackgroundWatermarks />
 
       {/* Navigation */}
       <Navbar />

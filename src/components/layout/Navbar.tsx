@@ -21,11 +21,44 @@ const NAV_LINKS = [
   { path: '/battle',      label: 'Battle',      icon: FiShield },
 ]
 
+const PIKACHU_FORMS = [
+  25,    // Pikachu
+  10080, // Pikachu Rock Star
+  10081, // Pikachu Belle
+  10082, // Pikachu Pop Star
+  10083, // Pikachu Ph.D.
+  10084, // Pikachu Libre
+  10085, // Pikachu Cosplay
+  10094, // Pikachu Original Cap
+  10095, // Pikachu Hoenn Cap
+  10096, // Pikachu Sinnoh Cap
+  10097, // Pikachu Unova Cap
+  10098, // Pikachu Kalos Cap
+  10099, // Pikachu Alola Cap
+  10148, // Pikachu Partner Cap
+]
+
 const Navbar: React.FC = () => {
   const location = useLocation()
   const [scrolled, setScrolled] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
   const { muted, toggleMuted } = useSoundStore()
+  const [pikachuId, setPikachuId] = useState(25)
+
+  // Choose a random costume on load
+  useEffect(() => {
+    const randomForm = PIKACHU_FORMS[Math.floor(Math.random() * PIKACHU_FORMS.length)]
+    setPikachuId(randomForm)
+  }, [])
+
+  // Switch to another random costume when hovered
+  const handlePikachuHover = () => {
+    const currentIndex = PIKACHU_FORMS.indexOf(pikachuId)
+    const otherForms = PIKACHU_FORMS.filter((_, idx) => idx !== currentIndex)
+    const nextForm = otherForms[Math.floor(Math.random() * otherForms.length)]
+    setPikachuId(nextForm)
+    soundService.play('hover')
+  }
 
   useEffect(() => {
     const handler = () => setScrolled(window.scrollY > 20)
@@ -55,10 +88,11 @@ const Navbar: React.FC = () => {
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2 flex-shrink-0" onClick={() => soundService.play('navigation')}>
             <img
-              src={getPokemonArtwork(25)}
+              src={getPokemonArtwork(pikachuId)}
               alt="Pikachu Mascot"
-              className="w-7 h-7 object-contain hover:scale-125 hover:rotate-12 transition-transform duration-300 pointer-events-auto"
+              className="w-7 h-7 object-contain hover:scale-125 hover:rotate-12 transition-transform duration-300 pointer-events-auto cursor-pointer"
               style={{ filter: 'drop-shadow(0 0 6px rgba(248, 208, 48, 0.8))' }}
+              onMouseEnter={handlePikachuHover}
             />
             <span className="font-black text-xl tracking-tight gradient-text" style={{ fontFamily: 'var(--font-display)' }}>
               PokéDex

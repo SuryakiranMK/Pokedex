@@ -305,23 +305,7 @@ const LandingPage: React.FC = () => {
   const heroY = useTransform(scrollY, [0, 500], [0, -100])
   const heroOpacity = useTransform(scrollY, [0, 350], [1, 0])
 
-  // Featured Hero Showcase Pokémon
-  const HERO_POKEMON = [
-    { id: 6, name: 'charizard', type: 'fire' },
-    { id: 25, name: 'pikachu', type: 'electric' },
-    { id: 150, name: 'mewtwo', type: 'psychic' },
-    { id: 384, name: 'rayquaza', type: 'dragon' },
-    { id: 448, name: 'lucario', type: 'fighting' },
-    { id: 658, name: 'greninja', type: 'water' },
-    { id: 94, name: 'gengar', type: 'ghost' },
-    { id: 133, name: 'eevee', type: 'normal' },
-    { id: 249, name: 'lugia', type: 'psychic' },
-  ]
-  const [sIdx, setSIdx] = useState(0)
-  useEffect(() => {
-    const id = setInterval(() => setSIdx((i) => (i + 1) % HERO_POKEMON.length), 3500)
-    return () => clearInterval(id)
-  }, [])
+
 
   return (
     <div className="overflow-x-hidden w-full">
@@ -385,12 +369,12 @@ const LandingPage: React.FC = () => {
             </h1>
 
             {/* Search input */}
-            <div className="relative w-full max-w-xl mx-auto lg:mx-0" style={{ zIndex: 20 }}>
+            <div className="relative w-full max-w-xl mx-auto lg:mx-0 my-8" style={{ zIndex: 20 }}>
               <SearchBar placeholder="Search by name or Pokédex number..." />
             </div>
 
             {/* CTA buttons */}
-            <div className="flex flex-wrap justify-center lg:justify-start gap-4 pt-2">
+            <div className="flex flex-wrap justify-center lg:justify-start gap-4 pt-4 mt-2">
               <Link
                 to="/pokedex"
                 className="px-8 py-4 rounded-2xl font-bold text-sm transition-all flex items-center gap-2.5 hover:scale-105 active:scale-95 text-white"
@@ -413,82 +397,83 @@ const LandingPage: React.FC = () => {
             </div>
           </motion.div>
 
-          {/* Right Column — 3D Showcase Card (Full-color) */}
+          {/* Right Column — 3D Showcase Card (Rotom Dex) */}
           <motion.div
-            style={{ y: heroY, opacity: heroOpacity }}
+            style={{ y: heroY }}
             className="lg:col-span-5 flex justify-center lg:justify-end w-full"
             initial={{ opacity: 0, scale: 0.9, x: 50 }}
             animate={{ opacity: 1, scale: 1, x: 0 }}
             transition={{ duration: 0.9, delay: 0.15, ease: 'easeOut' }}
           >
             <div className="relative group select-none pointer-events-auto">
-              {/* Outer decorative halo glow matching active type */}
+              {/* Outer decorative halo glow matching Rotom's orange/electric color */}
               <div
                 className="absolute inset-0 blur-3xl opacity-20 transition-all duration-700 pointer-events-none"
-                style={{ background: TYPE_COLORS[HERO_POKEMON[sIdx].type]?.bg }}
+                style={{ background: '#F08030' }}
               />
 
-              <AnimatePresence mode="wait">
-                <motion.div
-                  key={HERO_POKEMON[sIdx].id}
-                  className="glass-card p-6 rounded-3xl w-72 h-[380px] relative overflow-hidden flex flex-col items-center justify-between border-white/10 text-center select-none"
-                  style={{
-                    background: `linear-gradient(135deg, ${TYPE_COLORS[HERO_POKEMON[sIdx].type]?.bg ?? '#777'}20 0%, var(--bg-card) 60%)`,
-                    border: `1px solid ${TYPE_COLORS[HERO_POKEMON[sIdx].type]?.bg ?? '#777'}40`,
-                    boxShadow: `0 20px 50px rgba(0,0,0,0.5), 0 0 40px ${TYPE_COLORS[HERO_POKEMON[sIdx].type]?.glow ?? 'rgba(255,255,255,0.05)'}`,
-                  }}
-                  animate={{ y: [0, -12, 0] }}
-                  transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
-                  initial={{ opacity: 0, scale: 0.9, rotate: -3 }}
-                  exit={{ opacity: 0, scale: 0.9, rotate: 3 }}
-                  whileHover={{ scale: 1.03 }}
-                >
-                  {/* Decorative background watermark ID */}
-                  <div
-                    className="absolute -bottom-6 -right-6 font-black opacity-[0.03] select-none pointer-events-none"
-                    style={{ fontSize: '9rem', lineHeight: 1, color: TYPE_COLORS[HERO_POKEMON[sIdx].type]?.bg }}
+              <motion.div
+                className="glass-card p-6 rounded-3xl w-72 h-[380px] relative overflow-hidden flex flex-col items-center justify-between border-orange-500/30 text-center select-none cursor-pointer"
+                style={{
+                  background: 'linear-gradient(135deg, rgba(240, 128, 48, 0.15) 0%, var(--bg-card) 60%)',
+                  border: '1px solid rgba(240, 128, 48, 0.3)',
+                  boxShadow: '0 20px 50px rgba(0,0,0,0.5), 0 0 40px rgba(240, 128, 48, 0.2)',
+                }}
+                animate={{ y: [0, -12, 0] }}
+                transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
+                whileHover={{ scale: 1.03 }}
+                onClick={() => {
+                  soundService.play('success')
+                }}
+              >
+                {/* Tech grid overlay */}
+                <div className="absolute inset-0 opacity-[0.03] pointer-events-none" style={{
+                  backgroundImage: 'radial-gradient(circle, #F08030 1px, transparent 1px)',
+                  backgroundSize: '16px 16px'
+                }} />
+
+                {/* Scanning radar rings */}
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 border border-orange-500/10 rounded-full animate-spin pointer-events-none" style={{ animationDuration: '10s' }} />
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-56 h-56 border border-dashed border-orange-500/5 rounded-full animate-spin pointer-events-none" style={{ animationDuration: '20s', animationDirection: 'reverse' }} />
+
+                {/* Header info */}
+                <div className="w-full flex justify-between items-center text-[10px] font-mono font-bold text-orange-400">
+                  <span>ROTOM DEX v2.5</span>
+                  <span className="uppercase tracking-widest px-2 py-0.5 rounded-full text-[8px] border border-orange-500/40 bg-orange-500/10 animate-pulse">
+                    LIVE SCAN
+                  </span>
+                </div>
+
+                {/* Rotom Artwork */}
+                <div className="relative py-3 flex items-center justify-center">
+                  <div className="absolute w-28 h-28 rounded-full bg-orange-500/10 blur-2xl animate-pulse" />
+                  <img
+                    src={getPokemonArtwork(479)}
+                    alt="Rotom Dex"
+                    className="w-40 h-40 object-contain drop-shadow-2xl relative z-10 float"
+                    style={{ filter: 'drop-shadow(0 6px 20px rgba(240, 128, 48, 0.5))' }}
+                  />
+                </div>
+
+                {/* Footer details */}
+                <div className="w-full relative z-10">
+                  <h3 className="text-2xl font-black capitalize mb-1 text-orange-400" style={{ fontFamily: 'var(--font-display)' }}>
+                    Rotom Dex
+                  </h3>
+                  <p className="text-[9px] font-mono text-gray-500 uppercase tracking-widest mb-3">
+                    System Analyzer Active
+                  </p>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      soundService.play('success')
+                    }}
+                    className="inline-block text-[9px] font-bold uppercase tracking-wider px-4 py-1.5 rounded-xl bg-orange-500/10 border border-orange-500/25 hover:bg-orange-500/20 hover:border-orange-500/40 text-orange-300 transition-all active:scale-95 cursor-pointer"
                   >
-                    {HERO_POKEMON[sIdx].id}
-                  </div>
-
-                  {/* Header info */}
-                  <div className="w-full flex justify-between items-center text-xs font-mono font-bold">
-                    <span style={{ color: TYPE_COLORS[HERO_POKEMON[sIdx].type]?.bg }}>#{String(HERO_POKEMON[sIdx].id).padStart(4, '0')}</span>
-                    <span className="uppercase tracking-widest px-2 py-0.5 rounded-full text-[9px] border" style={{ borderColor: `${TYPE_COLORS[HERO_POKEMON[sIdx].type]?.bg}40`, color: TYPE_COLORS[HERO_POKEMON[sIdx].type]?.bg, background: `${TYPE_COLORS[HERO_POKEMON[sIdx].type]?.bg}10` }}>
-                      {HERO_POKEMON[sIdx].type}
-                    </span>
-                  </div>
-
-                  {/* Pokémon Artwork */}
-                  <div className="relative py-3 flex items-center justify-center">
-                    {/* Radial type color backing */}
-                    <div
-                      className="absolute w-28 h-28 rounded-full blur-2xl opacity-20"
-                      style={{ background: TYPE_COLORS[HERO_POKEMON[sIdx].type]?.bg }}
-                    />
-                    <img
-                      src={getPokemonArtwork(HERO_POKEMON[sIdx].id)}
-                      alt={HERO_POKEMON[sIdx].name}
-                      className="w-40 h-40 object-contain drop-shadow-2xl relative z-10 float"
-                      style={{ filter: `drop-shadow(0 6px 20px ${TYPE_COLORS[HERO_POKEMON[sIdx].type]?.glow})` }}
-                    />
-                  </div>
-
-                  {/* Footer details */}
-                  <div className="w-full">
-                    <h3 className="text-2xl font-black capitalize mb-2 text-gray-100" style={{ fontFamily: 'var(--font-display)' }}>
-                      {capitalize(HERO_POKEMON[sIdx].name)}
-                    </h3>
-                    <Link
-                      to={`/pokemon/${HERO_POKEMON[sIdx].name}`}
-                      className="inline-block text-[10px] font-bold uppercase tracking-wider px-4 py-1.5 rounded-full bg-white/5 border border-white/15 hover:bg-white/10 hover:border-white/20 text-gray-300 transition-all active:scale-95"
-                      onClick={() => soundService.play('click')}
-                    >
-                      Inspect stats →
-                    </Link>
-                  </div>
-                </motion.div>
-              </AnimatePresence>
+                    Sync Dex Data
+                  </button>
+                </div>
+              </motion.div>
             </div>
           </motion.div>
         </div>

@@ -221,7 +221,7 @@ const PokemonCard: React.FC<PokemonCardProps> = ({ id, name, types, height, weig
             >
               {capitalize(name)}
             </h3>
-            <div className="flex flex-wrap justify-center gap-1">
+            <div className="flex flex-wrap justify-center gap-1 min-h-[48px] items-center">
               {types.map((t) => <TypeBadge key={t} type={t} size="sm" />)}
             </div>
           </div>
