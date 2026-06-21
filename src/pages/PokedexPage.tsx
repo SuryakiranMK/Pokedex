@@ -7,7 +7,7 @@ import PokemonCard from '../components/pokemon/PokemonCard'
 import TypeBadge from '../components/ui/TypeBadge'
 import SearchBar from '../components/ui/SearchBar'
 import { usePokemonInfinite } from '../hooks/usePokeAPI'
-import { fetchPokemon } from '../api/pokemon'
+import { fetchPokemonCard } from '../api/pokemon'
 import { useQueries } from '@tanstack/react-query'
 import { TYPE_COLORS, GENERATIONS, REGIONS } from '../utils/constants'
 import { getIdFromUrl } from '../api/pokemon'
@@ -93,8 +93,8 @@ const PokedexPage: React.FC = () => {
   // Use individual queries to share cache globally and progressively load items
   const pokemonQueries = useQueries({
     queries: allEntries.map((e) => ({
-      queryKey: ['pokemon', e.name],
-      queryFn: () => fetchPokemon(e.name),
+      queryKey: ['pokemon-card', e.name],
+      queryFn: () => fetchPokemonCard(e.name),
       staleTime: 1000 * 60 * 30, // 30 mins
     })),
   })
@@ -127,7 +127,7 @@ const PokedexPage: React.FC = () => {
   const resolvedEntries = useMemo(() => {
     return allEntries.map((e, index) => {
       const q = pokemonQueries[index]
-      const details = q?.data
+      const details = q?.data as Pokemon | undefined
       const isItemLoading = !details && (q?.isLoading || !q)
       return {
         entry: e,

@@ -3,6 +3,7 @@ import type {
   Pokemon, PokemonSpecies, EvolutionChain, TypeData,
   Ability, Move, Region, PokemonListResponse,
 } from '../types'
+import { pokemonGen1CardDetails } from '../data/pokemonGen1CardDetails'
 
 // ---------- Pokémon ----------
 export const fetchPokemonList = async (limit = 20, offset = 0): Promise<PokemonListResponse> => {
@@ -12,6 +13,17 @@ export const fetchPokemonList = async (limit = 20, offset = 0): Promise<PokemonL
 }
 
 export const fetchPokemon = async (nameOrId: string | number): Promise<Pokemon> => {
+  const { data } = await api.get(`/pokemon/${nameOrId}`)
+  return data
+}
+
+export const fetchPokemonCard = async (nameOrId: string | number): Promise<any> => {
+  const normalized = typeof nameOrId === 'string' ? nameOrId.toLowerCase().trim() : nameOrId
+  const local = pokemonGen1CardDetails.find(
+    (p) => p.id === normalized || p.name === normalized
+  )
+  if (local) return local
+
   const { data } = await api.get(`/pokemon/${nameOrId}`)
   return data
 }
