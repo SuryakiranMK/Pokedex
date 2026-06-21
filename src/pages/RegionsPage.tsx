@@ -13,14 +13,14 @@ const RegionsPage: React.FC = () => {
   const region = REGIONS.find((r) => r.id === selected)
 
   // Fetch starters for the selected region
-  const { data: starters } = useQuery({
+  const { data: starters, isLoading: loadingStarters } = useQuery({
     queryKey: ['starters', selected],
     queryFn: () => region ? Promise.all(region.starters.map((s) => fetchPokemon(s))) : Promise.resolve([]),
     enabled: !!selected,
     staleTime: 1000 * 60 * 60,
   })
 
-  const { data: legendaries } = useQuery({
+  const { data: legendaries, isLoading: loadingLegendaries } = useQuery({
     queryKey: ['legendaries', selected],
     queryFn: () => region ? Promise.all(region.legendary.slice(0, 4).map((s) => fetchPokemon(s))) : Promise.resolve([]),
     enabled: !!selected,
@@ -31,7 +31,6 @@ const RegionsPage: React.FC = () => {
     <div className="max-w-6xl mx-auto px-4 py-8">
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="mb-8">
         <h1 className="text-4xl font-black gradient-text mb-1" style={{ fontFamily: 'var(--font-display)' }}>Regions</h1>
-        <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>Explore every Pokémon region</p>
       </motion.div>
 
       <div className="grid md:grid-cols-3 gap-5 mb-8">
@@ -103,50 +102,62 @@ const RegionsPage: React.FC = () => {
               {/* Starters */}
               <div>
                 <h3 className="font-bold text-sm mb-4 uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>Starter Pokémon</h3>
-                <div className="flex gap-4">
-                  {starters?.map((p) => (
-                    <motion.div
-                      key={p.id}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      className="text-center"
-                    >
-                      <img src={getPokemonArtwork(p.id)} alt={p.name} className="w-20 h-20 object-contain float" />
-                      <div className="text-xs font-bold capitalize mt-1">{capitalize(p.name)}</div>
-                      <div className="flex gap-1 mt-1 justify-center">
-                        {p.types.map((t) => <TypeBadge key={t.type.name} type={t.type.name} size="sm" showIcon={false} />)}
-                      </div>
-                    </motion.div>
-                  ))}
-                </div>
+                {loadingStarters ? (
+                  <div className="flex items-center justify-center py-8">
+                    <div className="pokeball-spinner w-8 h-8" />
+                  </div>
+                ) : (
+                  <div className="flex gap-4">
+                    {starters?.map((p) => (
+                      <motion.div
+                        key={p.id}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="text-center"
+                      >
+                        <img src={getPokemonArtwork(p.id)} alt={p.name} className="w-20 h-20 object-contain float" />
+                        <div className="text-xs font-bold capitalize mt-1">{capitalize(p.name)}</div>
+                        <div className="flex gap-1 mt-1 justify-center">
+                          {p.types.map((t) => <TypeBadge key={t.type.name} type={t.type.name} size="sm" showIcon={false} />)}
+                        </div>
+                      </motion.div>
+                    ))}
+                  </div>
+                )}
               </div>
 
               {/* Legendaries */}
               <div>
                 <h3 className="font-bold text-sm mb-4 uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>Legendary Pokémon</h3>
-                <div className="grid grid-cols-2 gap-3">
-                  {legendaries?.map((p) => (
-                    <motion.div
-                      key={p.id}
-                      initial={{ opacity: 0, x: -10 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      className="flex items-center gap-2 glass p-2 rounded-xl"
-                    >
-                      <img src={getPokemonArtwork(p.id)} alt={p.name} className="w-10 h-10 object-contain" />
-                      <div>
-                        <div className="text-xs font-bold capitalize">{capitalize(p.name)}</div>
-                        <div className="flex gap-1 mt-0.5">
-                          {p.types.map((t) => <TypeBadge key={t.type.name} type={t.type.name} size="sm" showIcon={false} />)}
+                {loadingLegendaries ? (
+                  <div className="flex items-center justify-center py-8">
+                    <div className="pokeball-spinner w-8 h-8" />
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-2 gap-3">
+                    {legendaries?.map((p) => (
+                      <motion.div
+                        key={p.id}
+                        initial={{ opacity: 0, x: -10 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        className="flex items-center gap-2 glass p-2 rounded-xl"
+                      >
+                        <img src={getPokemonArtwork(p.id)} alt={p.name} className="w-10 h-10 object-contain" />
+                        <div>
+                          <div className="text-xs font-bold capitalize">{capitalize(p.name)}</div>
+                          <div className="flex gap-1 mt-0.5">
+                            {p.types.map((t) => <TypeBadge key={t.type.name} type={t.type.name} size="sm" showIcon={false} />)}
+                          </div>
                         </div>
+                      </motion.div>
+                    ))}
+                    {region.legendary.length > 4 && (
+                      <div className="flex items-center justify-center glass p-2 rounded-xl text-xs" style={{ color: 'var(--text-muted)' }}>
+                        +{region.legendary.length - 4} more
                       </div>
-                    </motion.div>
-                  ))}
-                  {region.legendary.length > 4 && (
-                    <div className="flex items-center justify-center glass p-2 rounded-xl text-xs" style={{ color: 'var(--text-muted)' }}>
-                      +{region.legendary.length - 4} more
-                    </div>
-                  )}
-                </div>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
           </motion.div>

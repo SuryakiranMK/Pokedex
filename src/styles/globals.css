@@ -362,36 +362,121 @@ body {
 }
 
 /* Pokéball spinner */
-.pokeball-spinner {
-  width: 60px;
-  height: 60px;
+.pokeball-spinner,
+.greatball-spinner,
+.ultraball-spinner,
+.masterball-spinner {
   border-radius: 50%;
-  background: linear-gradient(to bottom, #ff0000 50%, #ffffff 50%);
-  border: 3px solid #333;
+  border: 2px solid #222;
   position: relative;
-  animation: pokeball-spin 1s linear infinite;
+  animation: pokeball-spin 0.8s linear infinite;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.3);
 }
+
+.pokeball-spinner {
+  background: linear-gradient(to bottom, #ef4444 50%, #ffffff 50%);
+}
+
+.greatball-spinner {
+  background: linear-gradient(to bottom, #2b78e4 50%, #ffffff 50%);
+}
+/* Adding Red accent markings for Great Ball using side lines */
+.greatball-spinner::before {
+  content: '';
+  position: absolute;
+  top: 5px;
+  left: 5px;
+  right: 5px;
+  height: 4px;
+  background: #ef4444;
+  border-radius: 2px;
+  transform: translateY(0) !important;
+  opacity: 0.8;
+  z-index: 1;
+}
+
+.ultraball-spinner {
+  background: linear-gradient(to bottom, #2d3033 50%, #ffffff 50%);
+}
+/* Adding yellow accent bands for Ultra Ball */
+.ultraball-spinner::before {
+  content: '';
+  position: absolute;
+  top: 4px;
+  left: 20%;
+  right: 20%;
+  height: 4px;
+  background: #facc15;
+  border-radius: 2px;
+  transform: translateY(0) !important;
+  opacity: 0.9;
+  z-index: 1;
+}
+
+.masterball-spinner {
+  background: linear-gradient(to bottom, #7c3aed 50%, #ffffff 50%);
+}
+/* Adding pink/purple markings for Master Ball */
+.masterball-spinner::before {
+  content: '';
+  position: absolute;
+  top: 4px;
+  left: 10%;
+  right: 10%;
+  height: 5px;
+  background: #ec4899;
+  border-radius: 50% 50% 0 0;
+  transform: translateY(0) !important;
+  opacity: 0.9;
+  z-index: 1;
+}
+
+/* Horizontal black stripes and middle buttons */
 .pokeball-spinner::before {
   content: '';
   position: absolute;
   top: 50%;
   left: 0;
   right: 0;
-  height: 3px;
-  background: #333;
+  height: 2px;
+  background: #222;
   transform: translateY(-50%);
 }
-.pokeball-spinner::after {
+
+/* Middle button elements */
+.pokeball-spinner::after,
+.greatball-spinner::after,
+.ultraball-spinner::after,
+.masterball-spinner::after {
   content: '';
   position: absolute;
   top: 50%;
   left: 50%;
-  width: 16px;
-  height: 16px;
+  width: 28%;
+  height: 28%;
   border-radius: 50%;
-  background: #fff;
-  border: 3px solid #333;
+  background: #ffffff;
+  border: 2px solid #222;
   transform: translate(-50%, -50%);
+  z-index: 4;
+}
+
+/* Middle stripe for Great/Ultra/Master balls */
+.greatball-spinner::before,
+.ultraball-spinner::before,
+.masterball-spinner::before {
+  /* Override default content inside Great/Ultra/Master elements if required, using fallback lines */
+}
+
+/* Add middle line style overrides for great/ultra/master elements */
+.greatball-spinner::after { border-color: #222; }
+.ultraball-spinner::after { border-color: #222; }
+.masterball-spinner::after { border-color: #222; }
+
+/* Custom keyframes for spin */
+@keyframes pokeball-spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
 @keyframes pokeball-spin {
   to { transform: rotate(360deg); }
@@ -634,4 +719,11 @@ body {
     animation-duration: 0.01ms !important;
     transition-duration: 0.01ms !important;
   }
+}
+
+/* Custom Dropdown Styling */
+select, select option, option {
+  background-color: #0f0f1e !important;
+  color: #f0f0ff !important;
+  color-scheme: dark !important;
 }

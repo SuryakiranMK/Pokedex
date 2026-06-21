@@ -439,9 +439,6 @@ const BattlePage: React.FC = () => {
       {/* Header */}
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="mb-8">
         <h1 className="text-4xl font-black gradient-text-fire mb-1" style={{ fontFamily: 'var(--font-display)' }}>Battle Simulator</h1>
-        <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
-          Pick two Pokémon to simulate a real-time battle round with move attacks and visual shake impact effects!
-        </p>
       </motion.div>
 
       {/* Battle arena */}

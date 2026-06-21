@@ -14,6 +14,8 @@ interface TeamStore {
   teams: SavedTeam[]
   activeTeamId: string | null
   currentTeam: TeamPokemon[]
+  teamSize: 3 | 6
+  setTeamSize: (size: 3 | 6) => void
   addToTeam: (pokemon: TeamPokemon) => void
   removeFromTeam: (id: number) => void
   saveTeam: (name: string) => void
@@ -62,8 +64,14 @@ export const useTeamStore = create<TeamStore>()(
       teams: [],
       activeTeamId: null,
       currentTeam: [],
+      teamSize: 6,
+      setTeamSize: (size) =>
+        set((s) => ({
+          teamSize: size,
+          currentTeam: s.currentTeam.slice(0, size),
+        })),
       addToTeam: (pokemon) =>
-        set((s) => s.currentTeam.length < 6 && !s.currentTeam.find((p) => p.id === pokemon.id)
+        set((s) => s.currentTeam.length < s.teamSize && !s.currentTeam.find((p) => p.id === pokemon.id)
           ? { currentTeam: [...s.currentTeam, pokemon] } : s),
       removeFromTeam: (id) =>
         set((s) => ({ currentTeam: s.currentTeam.filter((p) => p.id !== id) })),
@@ -78,7 +86,7 @@ export const useTeamStore = create<TeamStore>()(
       },
       loadTeam: (id) => {
         const team = get().teams.find((t) => t.id === id)
-        if (team) set({ currentTeam: team.pokemon, activeTeamId: id })
+        if (team) set({ currentTeam: team.pokemon, activeTeamId: id, teamSize: team.pokemon.length > 3 ? 6 : 3 })
       },
       deleteTeam: (id) =>
         set((s) => ({ teams: s.teams.filter((t) => t.id !== id), activeTeamId: null })),

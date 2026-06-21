@@ -5,11 +5,12 @@ import { FiHeart } from 'react-icons/fi'
 import { FaHeart } from 'react-icons/fa'
 import { LazyLoadImage } from 'react-lazy-load-image-component'
 import TypeBadge from '../ui/TypeBadge'
-import { useFavoritesStore } from '../../store'
+import { useFavoritesStore, useTeamStore } from '../../store'
 import { TYPE_COLORS } from '../../utils/constants'
 import { formatPokemonId, capitalize } from '../../utils/helpers'
-import { getPokemonArtwork } from '../../api/pokemon'
+import { getPokemonArtwork, fetchPokemon } from '../../api/pokemon'
 import { soundService } from '../../services/sound'
+import type { TeamPokemon } from '../../types'
 
 interface PokemonCardProps {
   id: number
@@ -22,6 +23,8 @@ interface PokemonCardProps {
 
 const PokemonCard: React.FC<PokemonCardProps> = ({ id, name, types, height, weight, viewMode = 'grid' }) => {
   const { isFavorite, toggleFavorite } = useFavoritesStore()
+  const { currentTeam, addToTeam, teamSize } = useTeamStore()
+  const [adding, setAdding] = useState(false)
   const fav = isFavorite(id)
   const cardRef = useRef<HTMLDivElement>(null)
 
@@ -43,6 +46,42 @@ const PokemonCard: React.FC<PokemonCardProps> = ({ id, name, types, height, weig
     mouseY.set((e.clientY - rect.top) / rect.height - 0.5)
   }
   const handleMouseLeave = () => { mouseX.set(0); mouseY.set(0) }
+
+  const handleAddToTeam = async (e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    if (adding) return
+
+    const inTeam = currentTeam.some((t) => t.id === id)
+    if (inTeam) {
+      soundService.play('error')
+      return
+    }
+
+    if (currentTeam.length >= teamSize) {
+      soundService.play('error')
+      alert(`Your team is full! Max team size is ${teamSize}.`)
+      return
+    }
+
+    setAdding(true)
+    try {
+      const data = await fetchPokemon(id)
+      const teamPokemon: TeamPokemon = {
+        id: data.id,
+        name: data.name,
+        types: data.types.map((t) => t.type.name),
+        artwork: getPokemonArtwork(data.id),
+        stats: data.stats.reduce((acc, s) => ({ ...acc, [s.stat.name]: s.base_stat }), {}),
+      }
+      addToTeam(teamPokemon)
+      soundService.play('success')
+    } catch (err) {
+      soundService.play('error')
+    } finally {
+      setAdding(false)
+    }
+  }
 
   if (viewMode === 'list') {
     return (
@@ -66,13 +105,32 @@ const PokemonCard: React.FC<PokemonCardProps> = ({ id, name, types, height, weig
             </div>
           </div>
         </Link>
-        <button
-          onClick={(e) => { e.preventDefault(); toggleFavorite(id); soundService.play('favorite') }}
-          className="p-2 transition-transform hover:scale-125"
-          aria-label={fav ? 'Remove from favorites' : 'Add to favorites'}
-        >
-          {fav ? <FaHeart className="text-red-500" /> : <FiHeart className="text-gray-400" />}
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            disabled={adding}
+            onClick={handleAddToTeam}
+            className={`px-3 py-1.5 rounded-xl font-bold text-[10px] tracking-wider uppercase transition-all flex items-center justify-center gap-1 ${
+              currentTeam.some((t) => t.id === id)
+                ? 'bg-green-500/10 text-green-400 border border-green-500/25 cursor-default'
+                : 'bg-indigo-500/10 hover:bg-indigo-500/25 text-indigo-300 border border-indigo-500/25 active:scale-95'
+            }`}
+          >
+            {adding ? (
+              <div className="pokeball-spinner w-3.5 h-3.5" />
+            ) : currentTeam.some((t) => t.id === id) ? (
+              'In Team ✓'
+            ) : (
+              '+ Team'
+            )}
+          </button>
+          <button
+            onClick={(e) => { e.preventDefault(); e.stopPropagation(); toggleFavorite(id); soundService.play('favorite') }}
+            className="p-2 transition-transform hover:scale-125"
+            aria-label={fav ? 'Remove from favorites' : 'Add to favorites'}
+          >
+            {fav ? <FaHeart className="text-red-500" /> : <FiHeart className="text-gray-400" />}
+          </button>
+        </div>
       </motion.div>
     )
   }
@@ -185,6 +243,30 @@ const PokemonCard: React.FC<PokemonCardProps> = ({ id, name, types, height, weig
               )}
             </div>
           )}
+
+          {/* Add to Team Button */}
+          <div className="mt-3 pt-2.5 border-t border-white/5 flex gap-1.5 justify-center items-center relative z-10">
+            <button
+              disabled={adding}
+              onClick={handleAddToTeam}
+              className={`w-full py-1.5 rounded-xl font-bold text-[10px] tracking-wider uppercase transition-all flex items-center justify-center gap-1 ${
+                currentTeam.some((t) => t.id === id)
+                  ? 'bg-green-500/10 text-green-400 border border-green-500/25 cursor-default'
+                  : 'bg-indigo-500/10 hover:bg-indigo-500/25 text-indigo-300 border border-indigo-500/25 active:scale-95'
+              }`}
+            >
+              {adding ? (
+                <>
+                  <div className="pokeball-spinner w-3.5 h-3.5" />
+                  <span>Adding...</span>
+                </>
+              ) : currentTeam.some((t) => t.id === id) ? (
+                'In Team ✓'
+              ) : (
+                '+ Add to Team'
+              )}
+            </button>
+          </div>
         </div>
       </Link>
     </motion.div>

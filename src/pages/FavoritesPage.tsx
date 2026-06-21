@@ -37,10 +37,7 @@ const FavoritesPage: React.FC = () => {
             <FiHeart className="text-red-400" size={20} />
           </div>
           <div>
-            <h1 className="text-4xl font-black gradient-text" style={{ fontFamily: 'var(--font-display)' }}>Favorites</h1>
-            <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
-              {favorites.length} Pokémon favorited
-            </p>
+            <h1 className="text-4xl font-black gradient-text" style={{ fontFamily: 'var(--font-display)' }}>Favorites ({favorites.length})</h1>
           </div>
         </div>
       </motion.div>
@@ -76,8 +73,9 @@ const FavoritesPage: React.FC = () => {
 
       {/* Grid */}
       {isLoading && favorites.length > 0 && (
-        <div className="pokemon-grid">
-          {favorites.map((id) => <SkeletonCard key={id} />)}
+        <div className="flex flex-col items-center justify-center py-20 gap-4">
+          <div className="pokeball-spinner w-12 h-12" />
+          <p className="text-sm font-semibold text-indigo-300 animate-pulse">Loading Favorites...</p>
         </div>
       )}
 

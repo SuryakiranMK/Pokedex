@@ -7,7 +7,7 @@ import TypeBadge from '../components/ui/TypeBadge'
 import SearchBar from '../components/ui/SearchBar'
 import { usePokemonInfinite } from '../hooks/usePokeAPI'
 import { fetchPokemon } from '../api/pokemon'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, keepPreviousData } from '@tanstack/react-query'
 import { TYPE_COLORS, GENERATIONS, REGIONS } from '../utils/constants'
 import { getIdFromUrl } from '../api/pokemon'
 import type { FilterState } from '../types'
@@ -39,6 +39,7 @@ const SkeletonCard = () => (
 const PokedexPage: React.FC = () => {
   const [filters, setFilters] = useState<FilterState>(defaultFilters)
   const [showFilters, setShowFilters] = useState(false)
+  const [loaderBall, setLoaderBall] = useState('pokeball-spinner')
   const { ref: sentinelRef, inView } = useInView({ threshold: 0 })
 
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } = usePokemonInfinite(24)
@@ -56,7 +57,17 @@ const PokedexPage: React.FC = () => {
     },
     enabled: allEntries.length > 0,
     staleTime: 1000 * 60 * 10,
+    placeholderData: keepPreviousData,
   })
+
+  // Cycle loader animations on loading more
+  useEffect(() => {
+    if (isFetchingNextPage) {
+      const balls = ['pokeball-spinner', 'greatball-spinner', 'ultraball-spinner', 'masterball-spinner']
+      const rand = balls[Math.floor(Math.random() * balls.length)]
+      setLoaderBall(rand)
+    }
+  }, [isFetchingNextPage])
 
   // Infinite scroll trigger
   useEffect(() => {
@@ -143,9 +154,6 @@ const PokedexPage: React.FC = () => {
         <h1 className="text-4xl font-black gradient-text mb-1" style={{ fontFamily: 'var(--font-display)' }}>
           Pokédex
         </h1>
-        <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
-          {filtered.length > 0 ? `${filtered.length} Pokémon found` : 'Explore all Pokémon'}
-        </p>
       </motion.div>
 
       {/* Toolbar */}
@@ -155,6 +163,12 @@ const PokedexPage: React.FC = () => {
             onSearch={(q) => setFilters((f) => ({ ...f, search: q }))}
             placeholder="Search Pokémon..."
           />
+        </div>
+
+        {/* Count badge */}
+        <div className="text-xs px-3.5 py-2.5 font-bold rounded-xl glass border border-white/10 text-indigo-300 flex items-center gap-1.5 shadow-md flex-shrink-0 animate-fade-in">
+          <span>🔍</span>
+          <span>{filtered.length} Pokémon found</span>
         </div>
 
         {/* Filter button */}
@@ -378,7 +392,7 @@ const PokedexPage: React.FC = () => {
           <div ref={sentinelRef} className="h-20 flex items-center justify-center">
             {isFetchingNextPage && (
               <div className="flex items-center gap-3 text-sm" style={{ color: 'var(--text-muted)' }}>
-                <div className="pokeball-spinner" style={{ width: 30, height: 30 }} />
+                <div className={`${loaderBall} w-7 h-7`} />
                 Loading more...
               </div>
             )}

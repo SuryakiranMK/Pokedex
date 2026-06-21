@@ -77,9 +77,6 @@ const ComparePage: React.FC = () => {
       {/* Header */}
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="mb-8">
         <h1 className="text-4xl font-black gradient-text mb-1" style={{ fontFamily: 'var(--font-display)' }}>Compare</h1>
-        <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
-          Compare up to {MAX_COMPARE} Pokémon side by side
-        </p>
       </motion.div>
 
       {/* Slots */}
@@ -98,7 +95,12 @@ const ComparePage: React.FC = () => {
               className="glass-card p-4 rounded-2xl text-center relative min-h-[180px] flex flex-col items-center justify-center"
               style={{ border: p ? `1px solid ${color}40` : '1px solid rgba(255,255,255,0.08)' }}
             >
-              {p ? (
+              {isLoading && id ? (
+                <div className="flex flex-col items-center justify-center gap-2">
+                  <div className="pokeball-spinner w-8 h-8" />
+                  <span className="text-[10px] text-gray-500 font-mono">Loading...</span>
+                </div>
+              ) : p ? (
                 <>
                   <button
                     onClick={() => { removeFromCompare(id); soundService.play('click') }}

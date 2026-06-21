@@ -55,7 +55,7 @@ const TypesPage: React.FC = () => {
 
   // Fetch sample Pokémon of selected type
   const pokemonOfType = typeData?.pokemon.slice(0, 12).map((p) => p.pokemon) ?? []
-  const { data: typePokemon } = useQuery({
+  const { data: typePokemon, isLoading: loadingTypePokemon } = useQuery({
     queryKey: ['type-pokemon', selected],
     queryFn: () => Promise.all(pokemonOfType.map((p) => fetchPokemon(p.name))),
     enabled: pokemonOfType.length > 0,
@@ -69,9 +69,6 @@ const TypesPage: React.FC = () => {
       {/* Header */}
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="mb-8">
         <h1 className="text-4xl font-black gradient-text mb-1" style={{ fontFamily: 'var(--font-display)' }}>Type Chart</h1>
-        <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
-          Interactive type effectiveness chart — click a type to explore
-        </p>
       </motion.div>
 
       {/* Type selector */}
@@ -195,19 +192,22 @@ const TypesPage: React.FC = () => {
                 <p className="text-xs mb-4" style={{ color: 'var(--text-muted)' }}>
                   Showing 12 of {typeData.pokemon.length} {capitalize(selected)}-type Pokémon
                 </p>
-                <div className="pokemon-grid">
-                  {typePokemon?.map((p) => (
-                    <PokemonCard
-                      key={p.id}
-                      id={p.id}
-                      name={p.name}
-                      types={p.types.map((t) => t.type.name)}
-                    />
-                  ))}
-                  {!typePokemon && Array.from({ length: 6 }).map((_, i) => (
-                    <div key={i} className="skeleton h-44 rounded-2xl" />
-                  ))}
-                </div>
+                {loadingTypePokemon ? (
+                  <div className="flex items-center justify-center py-16">
+                    <div className="pokeball-spinner w-10 h-10" />
+                  </div>
+                ) : (
+                  <div className="pokemon-grid">
+                    {typePokemon?.map((p) => (
+                      <PokemonCard
+                        key={p.id}
+                        id={p.id}
+                        name={p.name}
+                        types={p.types.map((t) => t.type.name)}
+                      />
+                    ))}
+                  </div>
+                )}
               </div>
             )}
           </motion.div>
