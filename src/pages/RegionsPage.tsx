@@ -191,6 +191,11 @@ const RegionsPage: React.FC = () => {
   // Fetch every single legendary in the region using global cache-sharing hook
   const { data: legendaries, isLoading: loadingLegendaries } = useMultiplePokemon(region?.legendary ?? [])
 
+  // Fetch starter Pokémon details dynamically
+  const starterChains = STARTER_EVOLUTIONS[selected ?? ''] ?? []
+  const starterIds = starterChains.flatMap((chain) => chain.map((p) => p.id))
+  const { data: starters } = useMultiplePokemon(starterIds)
+
   return (
     <div className="max-w-6xl mx-auto px-4 py-8">
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="mb-8">
@@ -239,24 +244,15 @@ const RegionsPage: React.FC = () => {
                       <div className="text-xs font-bold uppercase tracking-widest mb-0.5" style={{ color: r.color }}>
                         Generation {r.generation}
                       </div>
-                      <h2 className="text-xl font-black" style={{ fontFamily: 'var(--font-display)' }}>{r.name}</h2>
+                      <h2 className="text-xl font-black text-white group-hover:text-indigo-400 transition-colors" style={{ fontFamily: 'var(--font-display)' }}>
+                        {capitalize(r.name)}
+                      </h2>
                     </div>
-                    <motion.div
-                      animate={{ rotate: isSelected ? 90 : 0 }}
-                      className="mt-1"
-                      style={{ color: r.color }}
-                    >
-                      <FiChevronRight size={18} />
-                    </motion.div>
                   </div>
-                  <p className="text-xs leading-relaxed" style={{ color: 'var(--text-secondary)' }}>{r.description}</p>
-                  <div className="flex items-center gap-2 mt-3">
-                    <span className="text-xs px-2 py-1 rounded-full" style={{ background: `${r.color}20`, color: r.color }}>
-                      {r.starters.length} Starters
-                    </span>
-                    <span className="text-xs px-2 py-1 rounded-full" style={{ background: `${r.color}20`, color: r.color }}>
-                      {r.legendary.length} Legendaries
-                    </span>
+                  <p className="text-xs text-gray-400 leading-relaxed mb-4">{r.description}</p>
+                  <div className="flex items-center justify-between text-xs text-gray-500 font-semibold border-t border-white/5 pt-3">
+                    <span>{r.starters.length} Starters · {r.legendary.length} Legendaries</span>
+                    <FiChevronRight className={`transform transition-transform ${isSelected ? 'rotate-90 text-indigo-400' : 'group-hover:translate-x-1'}`} />
                   </div>
                 </div>
               </motion.button>
@@ -294,49 +290,66 @@ const RegionsPage: React.FC = () => {
                               key={chainIdx}
                               className="flex flex-row items-center justify-between gap-2 md:gap-4 bg-white/[0.02] border border-white/5 p-4 rounded-2xl overflow-x-auto shadow-inner w-full scrollbar-thin"
                             >
-                              {chain.map((p, pIdx) => (
-                                <React.Fragment key={p.id}>
-                                  <Link
-                                    to={`/pokemon/${p.name}`}
-                                    className="flex items-center gap-3 hover:scale-105 transition-transform duration-200 cursor-pointer shrink-0 group/starter"
-                                  >
-                                    <div
-                                      className="w-14 h-14 rounded-xl flex items-center justify-center border shrink-0 bg-white/5 group-hover/starter:border-indigo-500/40"
-                                      style={{ borderColor: `${region.color}25` }}
+                              {chain.map((p, pIdx) => {
+                                const details = starters?.find((s) => s.id === p.id)
+                                const hp = details?.stats.find(s => s.stat.name === 'hp')?.base_stat ?? '—'
+                                const atk = details?.stats.find(s => s.stat.name === 'attack')?.base_stat ?? '—'
+                                const spd = details?.stats.find(s => s.stat.name === 'speed')?.base_stat ?? '—'
+                                const bst = details ? details.stats.reduce((acc, s) => acc + s.base_stat, 0) : '—'
+
+                                return (
+                                  <React.Fragment key={p.id}>
+                                    <Link
+                                      to={`/pokemon/${p.name}`}
+                                      className="flex items-center gap-3 hover:scale-105 transition-transform duration-200 cursor-pointer shrink-0 group/starter"
                                     >
-                                      <img
-                                        src={getPokemonArtwork(p.id)}
-                                        alt={p.name}
-                                        className="w-11 h-11 object-contain"
-                                        loading="lazy"
-                                      />
-                                    </div>
-                                    <div className="min-w-0 hidden xs:block">
-                                      <div className="text-xs font-black capitalize truncate text-white group-hover/starter:text-indigo-400 transition-colors">
-                                        {p.name}
-                                      </div>
-                                      <div className="flex gap-1 mt-1">
-                                        {p.types.map((t) => (
-                                          <TypeBadge key={t} type={t} size="sm" />
-                                        ))}
-                                      </div>
-                                    </div>
-                                  </Link>
-                                  {pIdx < chain.length - 1 && (
-                                    <div className="flex flex-col items-center justify-center shrink-0 px-1">
-                                      <span className="text-[9px] font-mono text-gray-400 font-bold bg-white/5 px-1 py-0.5 rounded border border-white/5 select-none mb-0.5">
-                                        {chain[pIdx + 1].level}
-                                      </span>
                                       <div
-                                        className="font-black text-lg select-none leading-none"
-                                        style={{ color: `${region.color}80` }}
+                                        className="w-14 h-14 rounded-xl flex items-center justify-center border shrink-0 bg-white/5 group-hover/starter:border-indigo-500/40"
+                                        style={{ borderColor: `${region.color}25` }}
                                       >
-                                        →
+                                        <img
+                                          src={getPokemonArtwork(p.id)}
+                                          alt={p.name}
+                                          className="w-11 h-11 object-contain"
+                                          loading="lazy"
+                                        />
                                       </div>
-                                    </div>
-                                  )}
-                                </React.Fragment>
-                              ))}
+                                      <div className="min-w-0 hidden xs:block">
+                                        <div className="text-xs font-black capitalize truncate text-white group-hover/starter:text-indigo-400 transition-colors">
+                                          {p.name}
+                                        </div>
+                                        <div className="flex gap-1 mt-1">
+                                          {p.types.map((t) => (
+                                            <TypeBadge key={t} type={t} size="sm" />
+                                          ))}
+                                        </div>
+                                        <div className="text-[9px] font-mono text-gray-500 mt-1 flex items-center gap-1.5 flex-wrap">
+                                          <span>BST: <strong className="text-indigo-300">{bst}</strong></span>
+                                          <span>·</span>
+                                          <span>HP: <strong className="text-gray-300">{hp}</strong></span>
+                                          <span>·</span>
+                                          <span>ATK: <strong className="text-gray-300">{atk}</strong></span>
+                                          <span>·</span>
+                                          <span>SPD: <strong className="text-gray-300">{spd}</strong></span>
+                                        </div>
+                                      </div>
+                                    </Link>
+                                    {pIdx < chain.length - 1 && (
+                                      <div className="flex flex-col items-center justify-center shrink-0 px-1">
+                                        <span className="text-[9px] font-mono text-gray-400 font-bold bg-white/5 px-1 py-0.5 rounded border border-white/5 select-none mb-0.5">
+                                          {chain[pIdx + 1].level}
+                                        </span>
+                                        <div
+                                          className="font-black text-lg select-none leading-none"
+                                          style={{ color: `${region.color}80` }}
+                                        >
+                                          →
+                                        </div>
+                                      </div>
+                                    )}
+                                  </React.Fragment>
+                                )
+                              })}
                             </div>
                           ))}
                         </div>

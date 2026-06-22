@@ -137,7 +137,7 @@ const TypesPage: React.FC = () => {
                   whileHover={{ scale: 1.03 }}
                   whileTap={{ scale: 0.97 }}
                   onClick={() => handleToggleType(t)}
-                  className={`py-3 rounded-2xl text-xs font-black capitalize transition-all border text-center cursor-pointer flex items-center justify-center gap-2.5 relative overflow-hidden ${
+                  className={`py-4 rounded-2xl text-[13px] font-black capitalize transition-all border text-center cursor-pointer flex items-center justify-center gap-3 relative overflow-hidden ${
                     isSelected ? 'text-white shadow-md' : 'text-gray-300'
                   }`}
                   style={{
@@ -146,10 +146,10 @@ const TypesPage: React.FC = () => {
                     boxShadow: isSelected ? `0 6px 15px ${colors?.glow}` : 'none',
                   }}
                 >
-                  <TypeIcon type={t} size={15} color={isSelected ? '#ffffff' : colors?.bg} />
-                  <span className="font-bold tracking-wide text-[11px]">{capitalize(t)}</span>
+                  <TypeIcon type={t} size={18} color={isSelected ? '#ffffff' : colors?.bg} />
+                  <span className="font-bold tracking-wide">{capitalize(t)}</span>
                   {isSelected && (
-                    <span className="absolute top-1.5 right-1.5 w-3.5 h-3.5 rounded-full bg-black/40 border border-white/20 text-[8px] flex items-center justify-center font-bold">
+                    <span className="absolute top-2 right-2 w-4 h-4 rounded-full bg-black/45 border border-white/20 text-[8px] flex items-center justify-center font-bold">
                       {orderIdx + 1}
                     </span>
                   )}
@@ -316,9 +316,6 @@ const TypesPage: React.FC = () => {
             <h2 className="text-xl font-black text-white flex items-center gap-2" style={{ fontFamily: 'var(--font-display)' }}>
               <FiSliders /> Type Effectiveness Matrix
             </h2>
-            <p className="text-xs text-gray-500 mt-0.5">
-              Interactive relationship grid: rows represent attacker types; columns represent defender types.
-            </p>
           </div>
           <div className="flex flex-wrap gap-3 text-[10px] font-mono text-gray-400">
             <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded bg-emerald-500/30 border border-emerald-500/35" /> 2x / 4x Super Effective</div>

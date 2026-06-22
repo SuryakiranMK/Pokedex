@@ -195,14 +195,14 @@ const TeamBuilderPage: React.FC = () => {
     let lacking = ''
 
     if (highestStat[0] === 'speed') {
-      excels = '⚡ High Speed & Sweeper potential. Excels at outspeeding and taking down opponents quickly.'
-      lacking = '🛡️ Bulk & Survivability. May struggle to take hits from strong physical/special sweepers.'
+      excels = 'High Speed and first-strike potential.'
+      lacking = 'Defensive bulk and survivability.'
     } else if (highestStat[0] === 'defense' || highestStat[0] === 'special-defense' || highestStat[0] === 'hp') {
-      excels = '🛡️ High Bulk & Stall potential. Excels at taking hits, defensive positioning, and wearing down foes.'
-      lacking = '⚔️ Offensive Pressure. May lack raw damage output to quickly close out matches.'
+      excels = 'Strong defensive bulk and stall potential.'
+      lacking = 'Raw offensive pressure.'
     } else {
-      excels = '💥 High Offensive Power. Excels at breaking through defenses with massive physical and special attacks.'
-      lacking = '🏃 Initiative & Speed. Can be outsped and chipped down before executing strong attacks.'
+      excels = 'High raw offensive power and damage potential.'
+      lacking = 'Speed and initiative.'
     }
 
     // Type offensive coverage
@@ -213,12 +213,12 @@ const TeamBuilderPage: React.FC = () => {
     )
 
     if (coveredOffense.length > 0) {
-      excels += ` Deals super-effective damage against: ${coveredOffense.slice(0, 5).map(t => t.toUpperCase()).join(', ')}.`
+      excels += ` Good coverage against: ${coveredOffense.slice(0, 3).map(t => capitalize(t)).join(', ')}.`
     }
 
     const missingOffense = ALL_TYPES.filter((t) => !coveredOffense.includes(t))
     if (missingOffense.length > 0) {
-      lacking += ` Lacks super-effective coverage against: ${missingOffense.slice(0, 5).map(t => t.toUpperCase()).join(', ')}.`
+      lacking += ` Lacks coverage against: ${missingOffense.slice(0, 3).map(t => capitalize(t)).join(', ')}.`
     }
 
     // Threat types
@@ -645,7 +645,7 @@ const TeamBuilderPage: React.FC = () => {
           {/* Team Radar Stats — Visible unconditionally */}
           <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="glass-card p-4 rounded-2xl relative overflow-hidden">
             <h3 className="font-bold text-sm mb-3 flex items-center gap-1.5 text-gray-300">
-              📊 Team Average Stats
+              Team Average Stats
             </h3>
             <ResponsiveContainer width="100%" height={220}>
               <RadarChart data={radarData}>
@@ -678,7 +678,7 @@ const TeamBuilderPage: React.FC = () => {
             className="glass-card p-4 rounded-2xl space-y-5"
           >
             <h3 className="font-bold text-sm border-b border-white/5 pb-2 text-gray-300">
-              🛡️ Team Effectiveness & Strategy
+              Team Effectiveness & Strategy
             </h3>
 
             {/* Strengths & Weaknesses grid */}
@@ -721,18 +721,18 @@ const TeamBuilderPage: React.FC = () => {
             {/* Strategy (Excels / Lacking) */}
             <div className="space-y-2.5 border-t border-white/5 pt-3 text-xs">
               <div>
-                <span className="font-bold text-green-400 block mb-0.5">💪 Excels At</span>
+                <span className="font-bold text-green-400 block mb-0.5">Excels At</span>
                 <span className="text-gray-400 text-[11px] leading-relaxed">{teamAnalysis.excels}</span>
               </div>
               <div>
-                <span className="font-bold text-orange-400 block mb-0.5">⚠️ Bad / Lacking In</span>
+                <span className="font-bold text-orange-400 block mb-0.5">Weaknesses / Gaps</span>
                 <span className="text-gray-400 text-[11px] leading-relaxed">{teamAnalysis.lacking}</span>
               </div>
             </div>
 
             {/* Threats / Counter team */}
             <div className="border-t border-white/5 pt-3">
-              <span className="font-bold text-xs text-red-400 block mb-1">🔥 Top Counter Threats</span>
+              <span className="font-bold text-xs text-red-400 block mb-1">Top Threat Matchups</span>
               {teamAnalysis.counters.length > 0 ? (
                 <ul className="list-disc pl-4 space-y-1 text-gray-400 text-[11px]">
                   {teamAnalysis.counters.map((c, idx) => (

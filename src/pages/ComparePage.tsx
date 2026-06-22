@@ -8,18 +8,48 @@ import {
 import { useMultiplePokemon } from '../hooks/usePokeAPI'
 import { useUIStore } from '../store'
 import { useAllPokemonNames } from '../hooks/usePokeAPI'
-import { fetchPokemon, getPokemonArtwork, getPokemonSprite } from '../api/pokemon'
-import { useQuery } from '@tanstack/react-query'
+import { getPokemonArtwork, getPokemonSprite } from '../api/pokemon'
 import TypeBadge from '../components/ui/TypeBadge'
-import { TYPE_COLORS, STAT_LABELS } from '../utils/constants'
-import { capitalize, formatHeight, formatWeight, extractIdFromUrl } from '../utils/helpers'
+import { TYPE_COLORS, STAT_LABELS, TYPE_EFFECTIVENESS } from '../utils/constants'
+import { capitalize, extractIdFromUrl } from '../utils/helpers'
 import { soundService } from '../services/sound'
+import pokeBallImg from '../assets/poke-ball.png'
 
 const MAX_COMPARE = 4
 const COLORS = ['#6366f1', '#ec4899', '#10b981', '#f59e0b']
+const ALL_TYPES = Object.keys(TYPE_COLORS)
+
+const getMultiplier = (atk: string, def1: string, def2: string | null): number => {
+  const getSingle = (a: string, d: string): number => {
+    const eff = TYPE_EFFECTIVENESS[a]
+    if (!eff) return 1
+    if (eff.immune.includes(d)) return 0
+    if (eff.superEffective.includes(d)) return 2
+    if (eff.notEffective.includes(d)) return 0.5
+    return 1
+  }
+  const m1 = getSingle(atk, def1)
+  const m2 = def2 ? getSingle(atk, def2) : 1
+  return m1 * m2
+}
+
+const getDefensiveWeaknesses = (types: string[]): string[] => {
+  const t1 = types[0]
+  const t2 = types[1] || null
+  return ALL_TYPES.filter((atk) => getMultiplier(atk, t1, t2) >= 2)
+}
+
+const getDefensiveResistances = (types: string[]): string[] => {
+  const t1 = types[0]
+  const t2 = types[1] || null
+  return ALL_TYPES.filter((atk) => {
+    const m = getMultiplier(atk, t1, t2)
+    return m === 0.5 || m === 0.25 || m === 0
+  })
+}
 
 const ComparePage: React.FC = () => {
-  const { compareList, addToCompare, removeFromCompare, clearCompare, searchHistory, addSearchHistory, clearSearchHistory } = useUIStore()
+  const { compareList, addToCompare, removeFromCompare, searchHistory, addSearchHistory, clearSearchHistory } = useUIStore()
   const [search, setSearch] = useState('')
   const [showSearch, setShowSearch] = useState(false)
 
@@ -84,14 +114,14 @@ const ComparePage: React.FC = () => {
           return (
             <motion.div
               key={i}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.08 }}
-              className="glass-card p-4 rounded-2xl text-center relative min-h-[180px] flex flex-col items-center justify-center"
-              style={{ border: p ? `1px solid ${color}40` : '1px solid rgba(255,255,255,0.08)' }}
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: i * 0.06 }}
+              className="glass-card p-4 rounded-2xl text-center relative flex flex-col justify-between"
+              style={{ minHeight: 180, border: p ? `1px solid ${color}50` : '1px dashed rgba(255,255,255,0.1)' }}
             >
               {isLoading && id ? (
-                <div className="flex flex-col items-center justify-center gap-2">
+                <div className="flex flex-col items-center justify-center gap-2 h-full">
                   <div className="pokeball-spinner w-8 h-8" />
                   <span className="text-[10px] text-gray-500 font-mono">Loading...</span>
                 </div>
@@ -99,25 +129,40 @@ const ComparePage: React.FC = () => {
                 <>
                   <button
                     onClick={() => { removeFromCompare(id); soundService.play('click') }}
-                    className="absolute top-2 right-2 w-6 h-6 rounded-full glass flex items-center justify-center hover:bg-red-500/20 text-gray-400 hover:text-red-400 transition-all"
+                    className="absolute top-2 right-2 w-6 h-6 rounded-full glass flex items-center justify-center hover:bg-red-500/20 text-gray-400 hover:text-red-400 transition-all z-10"
                   >
-                    <FiX size={12} />
+                    <FiX size={11} />
                   </button>
-                  <div className="w-2 h-2 rounded-full mb-2" style={{ background: color }} />
-                  <img src={getPokemonArtwork(p.id)} alt={p.name} className="w-20 h-20 object-contain" style={{ filter: `drop-shadow(0 4px 12px ${color}60)` }} />
-                  <div className="text-xs font-mono mt-1" style={{ color: 'var(--text-muted)' }}>#{String(p.id).padStart(4,'0')}</div>
-                  <div className="font-bold text-sm capitalize mt-0.5">{capitalize(p.name)}</div>
-                  <div className="flex gap-1 mt-2 flex-wrap justify-center">
-                    {p.types.map((t) => <TypeBadge key={t.type.name} type={t.type.name} size="sm" />)}
+                  <motion.div
+                    className="absolute top-2 left-2 w-2.5 h-2.5 rounded-full"
+                    style={{ background: color }}
+                    animate={{ opacity: [1, 0.5, 1] }}
+                    transition={{ duration: 2, repeat: Infinity }}
+                  />
+                  <img src={getPokemonArtwork(p.id)} alt={p.name} className="w-20 h-20 mx-auto object-contain flex-shrink-0 float" style={{ filter: `drop-shadow(0 4px 12px ${color}50)` }} />
+                  <div>
+                    <div className="text-[10px] font-mono mt-1 text-gray-500">#{String(p.id).padStart(4,'0')}</div>
+                    <div className="font-bold text-sm capitalize mt-0.5 text-gray-100 truncate">{capitalize(p.name)}</div>
+                    <div className="flex gap-1 mt-1 justify-center flex-wrap">
+                      {p.types.map((t) => <TypeBadge key={t.type.name} type={t.type.name} size="sm" />)}
+                    </div>
+                    <div className="text-[10px] mt-1 font-mono text-gray-500">
+                      BST: {p.stats.reduce((a, b) => a + b.base_stat, 0)}
+                    </div>
                   </div>
                 </>
               ) : (
                 <button
                   onClick={() => { setShowSearch(true); soundService.play('click') }}
-                  className="flex flex-col items-center gap-2 text-gray-500 hover:text-white transition-colors w-full h-full justify-center"
+                  className="w-full h-full flex flex-col items-center justify-center gap-2.5 text-gray-500 hover:text-white transition-all group min-h-[148px]"
                 >
-                  <div className="w-12 h-12 rounded-2xl border-2 border-dashed border-current flex items-center justify-center">
-                    <FiPlus size={20} />
+                  <div className="w-12 h-12 flex items-center justify-center relative group-hover:scale-110 transition-transform">
+                    <img
+                      src={pokeBallImg}
+                      alt=""
+                      className="w-10 h-10 object-contain opacity-40 group-hover:opacity-100 transition-opacity"
+                      style={{ filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.4))' }}
+                    />
                   </div>
                   <span className="text-xs">Add Pokémon</span>
                 </button>
@@ -288,8 +333,54 @@ const ComparePage: React.FC = () => {
                 <tbody>
                   {[
                     { label: 'Types', render: (p: typeof pokemonList[0]) => <div className="flex gap-1 justify-center flex-wrap">{p.types.map((t) => <TypeBadge key={t.type.name} type={t.type.name} size="sm" />)}</div> },
+                    {
+                      label: 'Abilities',
+                      render: (p: typeof pokemonList[0]) => (
+                        <div className="flex flex-col gap-1 items-center justify-center">
+                          {p.abilities.map((a) => (
+                            <span key={a.ability.name} className="capitalize text-[11px] font-medium text-gray-200">
+                              {a.ability.name.replace('-', ' ')}
+                              {a.is_hidden && <span className="text-[9px] text-indigo-400 font-bold ml-1">(Hidden)</span>}
+                            </span>
+                          ))}
+                        </div>
+                      )
+                    },
+                    {
+                      label: 'Weaknesses',
+                      render: (p: typeof pokemonList[0]) => {
+                        const types = p.types.map(t => t.type.name)
+                        const weaks = getDefensiveWeaknesses(types)
+                        return (
+                          <div className="flex gap-1 justify-center flex-wrap max-w-[160px] mx-auto">
+                            {weaks.length > 0 ? (
+                              weaks.map((w) => <TypeBadge key={w} type={w} size="sm" />)
+                            ) : (
+                              <span className="text-[11px] text-gray-500 italic">None</span>
+                            )}
+                          </div>
+                        )
+                      }
+                    },
+                    {
+                      label: 'Resistances',
+                      render: (p: typeof pokemonList[0]) => {
+                        const types = p.types.map(t => t.type.name)
+                        const res = getDefensiveResistances(types)
+                        return (
+                          <div className="flex gap-1 justify-center flex-wrap max-w-[160px] mx-auto">
+                            {res.length > 0 ? (
+                              res.map((r) => <TypeBadge key={r} type={r} size="sm" />)
+                            ) : (
+                              <span className="text-[11px] text-gray-500 italic">None</span>
+                            )}
+                          </div>
+                        )
+                      }
+                    },
                     { label: 'Height', render: (p: typeof pokemonList[0]) => `${(p.height/10).toFixed(1)}m` },
                     { label: 'Weight', render: (p: typeof pokemonList[0]) => `${(p.weight/10).toFixed(1)}kg` },
+                    { label: 'Base Exp', render: (p: typeof pokemonList[0]) => p.base_experience ?? '—' },
                     ...statNames.map((s) => ({
                       label: STAT_LABELS[s] ?? s,
                       render: (p: typeof pokemonList[0]) => {
