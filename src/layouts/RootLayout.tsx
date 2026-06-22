@@ -1,5 +1,5 @@
 import React from 'react'
-import { Outlet, useLocation, ScrollRestoration } from 'react-router-dom'
+import { Outlet, useLocation, ScrollRestoration, useOutlet } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import Navbar from '../components/layout/Navbar'
 import ParticleCanvas from '../components/ui/ParticleCanvas'
@@ -13,6 +13,7 @@ const pageVariants = {
 
 const RootLayout: React.FC = () => {
   const location = useLocation()
+  const outlet = useOutlet()
 
   return (
     <div className="min-h-screen animated-gradient relative">
@@ -40,9 +41,10 @@ const RootLayout: React.FC = () => {
           transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
           className="relative z-10 pt-20 min-h-screen"
         >
-          <Outlet />
+          {outlet}
         </motion.main>
       </AnimatePresence>
+
 
       {/* Footer */}
       <footer className="relative z-10 border-t border-white/5 py-8 mt-16">

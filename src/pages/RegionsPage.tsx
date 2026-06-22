@@ -317,7 +317,7 @@ const RegionsPage: React.FC = () => {
                                       </div>
                                       <div className="flex gap-1 mt-1">
                                         {p.types.map((t) => (
-                                          <TypeBadge key={t} type={t} size="sm" showIcon={false} />
+                                          <TypeBadge key={t} type={t} size="sm" />
                                         ))}
                                       </div>
                                     </div>
@@ -384,7 +384,7 @@ const RegionsPage: React.FC = () => {
                                     </div>
                                     <div className="flex gap-1 mt-1">
                                       {p.types.map((t) => (
-                                        <TypeBadge key={t.type.name} type={t.type.name} size="sm" showIcon={false} />
+                                        <TypeBadge key={t.type.name} type={t.type.name} size="sm" />
                                       ))}
                                     </div>
                                     <div className="grid grid-cols-4 gap-2 mt-2.5 text-[9px] font-mono text-gray-400 border-t border-white/5 pt-1.5">

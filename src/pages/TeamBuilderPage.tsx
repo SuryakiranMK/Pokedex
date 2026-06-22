@@ -404,7 +404,7 @@ const TeamBuilderPage: React.FC = () => {
                       <div>
                         <div className="font-bold text-sm capitalize mt-1 text-gray-100 truncate">{capitalize(p.name)}</div>
                         <div className="flex gap-1 mt-1 justify-center">
-                          {p.types.map((t) => <TypeBadge key={t} type={t} size="sm" showIcon={false} />)}
+                          {p.types.map((t) => <TypeBadge key={t} type={t} size="sm" />)}
                         </div>
                         <div className="text-[10px] mt-1 font-mono text-gray-500">
                           BST: {Object.values(p.stats).reduce((a, b) => a + b, 0)}
@@ -690,7 +690,7 @@ const TeamBuilderPage: React.FC = () => {
                   <div className="flex flex-wrap gap-1" style={{ marginTop: '15px' }}>
                     {teamAnalysis.weaknesses.map((w) => (
                       <div key={w.type} className="flex items-center gap-0.5" title={`${w.weakCount} team members are weak to ${w.type}`}>
-                        <TypeBadge type={w.type} size="sm" showIcon={false} />
+                        <TypeBadge type={w.type} size="sm" />
                         <span className="text-[9px] text-red-400 font-bold">×{w.weakCount}</span>
                       </div>
                     ))}
@@ -707,7 +707,7 @@ const TeamBuilderPage: React.FC = () => {
                   <div className="flex flex-wrap gap-1">
                     {teamAnalysis.strengths.map((s) => (
                       <div key={s.type} className="flex items-center gap-0.5" title={`${s.resistCount} team members resist ${s.type}`}>
-                        <TypeBadge type={s.type} size="sm" showIcon={false} />
+                        <TypeBadge type={s.type} size="sm" />
                         <span className="text-[9px] text-green-400 font-bold">×{s.resistCount}</span>
                       </div>
                     ))}

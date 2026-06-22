@@ -16,6 +16,7 @@ import giovanniImg from '../assets/giovanni.png'
 import kukuiImg from '../assets/professor_kukui.png'
 import rowanImg from '../assets/professor_rowan.png'
 import sycamoreImg from '../assets/professor_sycamore.png'
+import pokeballImg from '../assets/poke-ball.png'
 
 // ── SVG Icons for Quick Nav ───────────────────────────────
 const IconPokedex = () => (
@@ -274,87 +275,91 @@ const PokemonOfTheYearCarousel: React.FC = () => {
         animate={{ opacity: 0.25 }}
       />
 
-      <div className="relative z-10 flex flex-col md:flex-row items-center gap-8 p-8 md:p-10">
-        {feat && (
-          <motion.div
-            key={feat.id}
-            initial={{ opacity: 0, scale: 0.7, rotate: -8 }}
-            animate={{ opacity: 1, scale: 1, rotate: 0 }}
-            transition={{ type: 'spring', stiffness: 200, damping: 18 }}
-            className="flex-shrink-0"
-          >
-            <img
-              src={getPokemonArtwork(feat.id)}
-              alt={feat.name}
-              className="w-44 h-44 md:w-64 md:h-64 object-contain drop-shadow-2xl float"
-              style={{ filter: `drop-shadow(0 10px 40px ${typeColor.glow})` }}
-            />
-          </motion.div>
-        )}
+      <div className="relative z-10 p-8 md:p-10 min-h-[480px] md:min-h-[340px] flex items-center">
+        <AnimatePresence mode="wait" initial={false}>
+          {feat && (
+            <motion.div
+              key={feat.id}
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: 0.35, ease: 'easeInOut' }}
+              className="w-full flex flex-col md:flex-row items-center gap-8 md:gap-10"
+            >
+              {/* Pokémon Image */}
+              <motion.div
+                className="flex-shrink-0 mx-auto md:mx-0"
+                initial={{ scale: 0.85, rotate: -4 }}
+                animate={{ scale: 1, rotate: 0 }}
+                transition={{ type: 'spring', stiffness: 180, damping: 15, delay: 0.05 }}
+              >
+                <img
+                  src={getPokemonArtwork(feat.id)}
+                  alt={feat.name}
+                  className="w-44 h-44 md:w-64 md:h-64 object-contain drop-shadow-2xl float"
+                  style={{ filter: `drop-shadow(0 10px 40px ${typeColor.glow})` }}
+                />
+              </motion.div>
 
-        {feat && (
-          <motion.div
-            key={`info-${feat.id}`}
-            initial={{ opacity: 0, x: 30 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.15, duration: 0.4 }}
-            className="flex-1 text-left"
-          >
-            <div className="text-xs font-mono mb-3 tracking-widest uppercase flex flex-wrap items-center gap-2" style={{ color: typeColor.bg }}>
-              <span className="px-2.5 py-0.5 rounded-lg bg-amber-500/20 text-amber-300 font-bold border border-amber-500/35">
-                🏆 Rank #{feat.rank}
-              </span>
-              <span className="text-gray-500 font-bold">·</span>
-              <span className="text-white font-bold">{feat.votes.toLocaleString()} Votes</span>
-              <span className="text-gray-500 font-bold">·</span>
-              <span>#{String(feat.id).padStart(4, '0')} · {feat.region}</span>
-            </div>
-            <h3
-              className="text-4xl md:text-5xl font-black capitalize mb-4"
-              style={{ fontFamily: 'var(--font-display)', color: 'var(--text-primary)' }}
-            >
-              {capitalize(feat.name)}
-            </h3>
-            <div className="flex flex-wrap gap-2 mb-6">
-              {(pokemon?.types ?? []).map((t) => (
-                <TypeBadge key={t.type.name} type={t.type.name} size="md" />
-              ))}
-            </div>
-            {pokemon && (
-              <div className="grid grid-cols-3 gap-3 mb-6">
-                {[
-                  { label: 'HP', val: pokemon.stats.find(s => s.stat.name === 'hp')?.base_stat ?? '—' },
-                  { label: 'ATK', val: pokemon.stats.find(s => s.stat.name === 'attack')?.base_stat ?? '—' },
-                  { label: 'SPD', val: pokemon.stats.find(s => s.stat.name === 'speed')?.base_stat ?? '—' },
-                ].map(({ label, val }) => (
-                  <div
-                    key={label}
-                    className="rounded-xl px-3 py-2 text-center"
-                    style={{ background: `${typeColor.bg}20`, border: `1px solid ${typeColor.bg}40` }}
-                  >
-                    <div className="text-xs font-mono mb-0.5" style={{ color: typeColor.bg }}>{label}</div>
-                    <div className="text-lg font-black" style={{ color: 'var(--text-primary)' }}>{val}</div>
+              {/* Pokémon Details */}
+              <div className="flex-1 text-left w-full">
+                <div className="text-xs font-mono mb-3 tracking-widest uppercase flex flex-wrap items-center gap-2" style={{ color: typeColor.bg }}>
+                  <span className="px-2.5 py-0.5 rounded-lg bg-amber-500/20 text-amber-300 font-bold border border-amber-500/35">
+                    🏆 Rank #{feat.rank}
+                  </span>
+                  <span className="text-gray-500 font-bold">·</span>
+                  <span className="text-white font-bold">{feat.votes.toLocaleString()} Votes</span>
+                  <span className="text-gray-500 font-bold">·</span>
+                  <span>#{String(feat.id).padStart(4, '0')} · {feat.region}</span>
+                </div>
+                <h3
+                  className="text-4xl md:text-5xl font-black capitalize mb-4"
+                  style={{ fontFamily: 'var(--font-display)', color: 'var(--text-primary)' }}
+                >
+                  {capitalize(feat.name)}
+                </h3>
+                <div className="flex flex-wrap gap-2 mb-6">
+                  {(pokemon?.types ?? []).map((t) => (
+                    <TypeBadge key={t.type.name} type={t.type.name} size="md" />
+                  ))}
+                </div>
+                {pokemon && (
+                  <div className="grid grid-cols-3 gap-3 mb-6">
+                    {[
+                      { label: 'HP', val: pokemon.stats.find(s => s.stat.name === 'hp')?.base_stat ?? '—' },
+                      { label: 'ATK', val: pokemon.stats.find(s => s.stat.name === 'attack')?.base_stat ?? '—' },
+                      { label: 'SPD', val: pokemon.stats.find(s => s.stat.name === 'speed')?.base_stat ?? '—' },
+                    ].map(({ label, val }) => (
+                      <div
+                        key={label}
+                        className="rounded-xl px-3 py-2 text-center"
+                        style={{ background: `${typeColor.bg}20`, border: `1px solid ${typeColor.bg}40` }}
+                      >
+                        <div className="text-xs font-mono mb-0.5" style={{ color: typeColor.bg }}>{label}</div>
+                        <div className="text-lg font-black" style={{ color: 'var(--text-primary)' }}>{val}</div>
+                      </div>
+                    ))}
                   </div>
-                ))}
+                )}
+                <Link
+                  to={`/pokemon/${feat.name}`}
+                  className="inline-flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-bold transition-all hover:scale-105 active:scale-95"
+                  style={{
+                    background: `linear-gradient(135deg, ${typeColor.bg}, ${typeColor.bg}cc)`,
+                    color: typeColor.text,
+                    boxShadow: `0 6px 24px ${typeColor.glow}`,
+                  }}
+                  onClick={() => soundService.play('navigation')}
+                >
+                  View Details
+                  <svg viewBox="0 0 20 20" fill="currentColor" width="14" height="14">
+                    <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
+                  </svg>
+                </Link>
               </div>
-            )}
-            <Link
-              to={`/pokemon/${feat.name}`}
-              className="inline-flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-bold transition-all hover:scale-105 active:scale-95"
-              style={{
-                background: `linear-gradient(135deg, ${typeColor.bg}, ${typeColor.bg}cc)`,
-                color: typeColor.text,
-                boxShadow: `0 6px 24px ${typeColor.glow}`,
-              }}
-              onClick={() => soundService.play('navigation')}
-            >
-              View Details
-              <svg viewBox="0 0 20 20" fill="currentColor" width="14" height="14">
-                <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
-              </svg>
-            </Link>
-          </motion.div>
-        )}
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
       {/* Dots */}
@@ -486,7 +491,6 @@ const SHOWCASE_CHARACTERS = [
 const LandingPage: React.FC = () => {
   const { scrollY } = useScroll()
   const heroY = useTransform(scrollY, [0, 500], [0, -100])
-  const heroOpacity = useTransform(scrollY, [0, 350], [1, 0])
 
   const [showcaseIndex, setShowcaseIndex] = useState(() => Math.floor(Math.random() * SHOWCASE_CHARACTERS.length))
 
@@ -502,51 +506,53 @@ const LandingPage: React.FC = () => {
   const char = SHOWCASE_CHARACTERS[showcaseIndex]
 
   return (
-    <div className="overflow-x-hidden w-full">
+    <div className="overflow-x-hidden w-full relative">
+      {/* Floating Pokémon and Pokéballs background watermarks (spread page-wide) */}
+      {[
+        { id: 151, color: '#f85888', size: 180, x: 8, y: 15, delay: 0.2 },  // Mew
+        { id: 251, color: '#78c850', size: 220, x: 25, y: 55, delay: 1.5 }, // Celebi
+        { id: 494, color: '#f08030', size: 170, x: 45, y: 22, delay: 2.7 },  // Victini
+        { id: 385, color: '#f8d030', size: 200, x: 65, y: 70, delay: 0.9 }, // Jirachi
+        { id: 175, color: '#ee99ac', size: 150, x: 85, y: 18, delay: 3.4 },  // Togepi
+        { id: 0, color: '#ef4444', size: 240, x: 75, y: 40, delay: 4.1 },   // Standard Pokéball
+      ].map((item, i) => (
+        <motion.div
+          key={i}
+          className="absolute opacity-[0.08] pointer-events-none"
+          style={{
+            left: `${item.x}%`,
+            top: `${item.y}%`,
+            width: item.size,
+            height: item.size,
+          }}
+          animate={{ y: [0, -24, 0], rotate: [0, 360] }}
+          transition={{ duration: 10 + i * 3, repeat: Infinity, ease: 'linear', delay: item.delay }}
+        >
+          {item.id === 0 ? (
+            <img
+              src={pokeballImg}
+              alt=""
+              className="w-full h-full object-contain filter grayscale opacity-80"
+              style={{ filter: 'drop-shadow(0 0 15px #ef4444)' }}
+            />
+          ) : (
+            <img
+              src={getPokemonArtwork(item.id)}
+              alt=""
+              className="w-full h-full object-contain filter grayscale opacity-80"
+              style={{ filter: `drop-shadow(0 0 15px ${item.color})` }}
+              loading="lazy"
+            />
+          )}
+        </motion.div>
+      ))}
+
       {/* ── HERO ── */}
       <section className="relative min-h-screen flex flex-col items-center justify-center px-6 pt-28 pb-12 overflow-hidden">
-        {/* Floating Pokémon and Pokéballs background watermarks */}
-        {[
-          { id: 151, color: '#f85888', size: 100, x: 8, y: 15, delay: 0.2 },  // Mew
-          { id: 251, color: '#78c850', size: 120, x: 25, y: 55, delay: 1.5 }, // Celebi
-          { id: 494, color: '#f08030', size: 95, x: 45, y: 22, delay: 2.7 },  // Victini
-          { id: 385, color: '#f8d030', size: 110, x: 65, y: 70, delay: 0.9 }, // Jirachi
-          { id: 175, color: '#ee99ac', size: 85, x: 85, y: 18, delay: 3.4 },  // Togepi
-          { id: 0, color: '#ef4444', size: 130, x: 75, y: 40, delay: 4.1 },   // Standard Pokéball
-        ].map((item, i) => (
-          <motion.div
-            key={i}
-            className="absolute opacity-[0.08] pointer-events-none"
-            style={{
-              left: `${item.x}%`,
-              top: `${item.y}%`,
-              width: item.size,
-              height: item.size,
-            }}
-            animate={{ y: [0, -24, 0], rotate: [0, 360] }}
-            transition={{ duration: 10 + i * 3, repeat: Infinity, ease: 'linear', delay: item.delay }}
-          >
-            {item.id === 0 ? (
-              <div className="w-full h-full rounded-full" style={{
-                background: 'linear-gradient(to bottom, #ef4444 50%, #fff 50%)',
-                border: '3px solid rgba(255,255,255,0.2)',
-              }} />
-            ) : (
-              <img
-                src={getPokemonArtwork(item.id)}
-                alt=""
-                className="w-full h-full object-contain filter grayscale opacity-80"
-                style={{ filter: `drop-shadow(0 0 15px ${item.color})` }}
-                loading="lazy"
-              />
-            )}
-          </motion.div>
-        ))}
-
         <div className="w-full max-w-6xl mx-auto grid lg:grid-cols-12 gap-8 items-center relative z-10 text-center lg:text-left">
           {/* Left Column — Text & Search */}
           <motion.div
-            style={{ y: heroY, opacity: heroOpacity }}
+            style={{ y: heroY }}
             className="lg:col-span-7 space-y-6"
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}

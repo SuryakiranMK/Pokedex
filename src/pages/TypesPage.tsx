@@ -1,9 +1,10 @@
 import React, { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Link } from 'react-router-dom'
-import { TYPE_COLORS, TYPE_EMOJI, TYPE_EFFECTIVENESS } from '../utils/constants'
+import { TYPE_COLORS, TYPE_EFFECTIVENESS } from '../utils/constants'
 import { capitalize } from '../utils/helpers'
 import TypeBadge from '../components/ui/TypeBadge'
+import TypeIcon from '../components/ui/TypeIcons'
 import { soundService } from '../services/sound'
 import { FiSliders, FiZap, FiShield, FiHeart } from 'react-icons/fi'
 
@@ -125,30 +126,30 @@ const TypesPage: React.FC = () => {
             )}
           </div>
 
-          <div className="grid grid-cols-3 sm:grid-cols-6 gap-3">
+          <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
             {ALL_TYPES.map((t) => {
               const isSelected = selectedTypes.includes(t)
               const orderIdx = selectedTypes.indexOf(t)
+              const colors = TYPE_COLORS[t]
               return (
                 <motion.button
                   key={t}
                   whileHover={{ scale: 1.03 }}
                   whileTap={{ scale: 0.97 }}
                   onClick={() => handleToggleType(t)}
-                  className={`py-3 rounded-2xl text-xs font-black capitalize transition-all border text-center cursor-pointer flex flex-col items-center justify-center gap-1.5 relative overflow-hidden ${
-                    isSelected
-                      ? 'text-white border-white/40 shadow-lg'
-                      : 'border-white/5 bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
+                  className={`py-3 rounded-2xl text-xs font-black capitalize transition-all border text-center cursor-pointer flex items-center justify-center gap-2.5 relative overflow-hidden ${
+                    isSelected ? 'text-white shadow-md' : 'text-gray-300'
                   }`}
                   style={{
-                    background: isSelected ? TYPE_COLORS[t]?.bg : undefined,
-                    boxShadow: isSelected ? `0 6px 20px ${TYPE_COLORS[t]?.glow}` : 'none',
+                    background: isSelected ? colors?.bg : `${colors?.bg}14`,
+                    borderColor: isSelected ? '#ffffff50' : `${colors?.bg}30`,
+                    boxShadow: isSelected ? `0 6px 15px ${colors?.glow}` : 'none',
                   }}
                 >
-                  <span className="text-xl leading-none">{TYPE_EMOJI[t]}</span>
-                  <span className="font-semibold tracking-wide text-[11px]">{t}</span>
+                  <TypeIcon type={t} size={15} color={isSelected ? '#ffffff' : colors?.bg} />
+                  <span className="font-bold tracking-wide text-[11px]">{capitalize(t)}</span>
                   {isSelected && (
-                    <span className="absolute top-1.5 right-2 w-4 h-4 rounded-full bg-black/30 border border-white/20 text-[9px] flex items-center justify-center font-bold">
+                    <span className="absolute top-1.5 right-1.5 w-3.5 h-3.5 rounded-full bg-black/40 border border-white/20 text-[8px] flex items-center justify-center font-bold">
                       {orderIdx + 1}
                     </span>
                   )}
@@ -220,7 +221,7 @@ const TypesPage: React.FC = () => {
                           <span className="text-[10px] font-mono text-red-400 font-bold uppercase tracking-wider block">Takes 4x Damage</span>
                           <div className="flex flex-wrap gap-1.5">
                             {doubleWeak.map((d) => (
-                              <TypeBadge key={d.type} type={d.type} size="sm" showIcon={false} />
+                              <TypeBadge key={d.type} type={d.type} size="sm" />
                             ))}
                           </div>
                         </div>
@@ -230,7 +231,7 @@ const TypesPage: React.FC = () => {
                           <span className="text-[10px] font-mono text-red-400/80 font-bold uppercase tracking-wider block">Takes 2x Damage</span>
                           <div className="flex flex-wrap gap-1.5">
                             {weak.map((d) => (
-                              <TypeBadge key={d.type} type={d.type} size="sm" showIcon={false} />
+                              <TypeBadge key={d.type} type={d.type} size="sm" />
                             ))}
                           </div>
                         </div>
@@ -254,7 +255,7 @@ const TypesPage: React.FC = () => {
                           <span className="text-[10px] font-mono text-indigo-400 font-bold uppercase tracking-wider block font-black">Takes 0x Damage (Immune)</span>
                           <div className="flex flex-wrap gap-1.5">
                             {immune.map((d) => (
-                              <TypeBadge key={d.type} type={d.type} size="sm" showIcon={false} />
+                              <TypeBadge key={d.type} type={d.type} size="sm" />
                             ))}
                           </div>
                         </div>
@@ -264,7 +265,7 @@ const TypesPage: React.FC = () => {
                           <span className="text-[10px] font-mono text-green-400 font-bold uppercase tracking-wider block">Takes ¼x Damage</span>
                           <div className="flex flex-wrap gap-1.5">
                             {doubleResistant.map((d) => (
-                              <TypeBadge key={d.type} type={d.type} size="sm" showIcon={false} />
+                              <TypeBadge key={d.type} type={d.type} size="sm" />
                             ))}
                           </div>
                         </div>
@@ -274,7 +275,7 @@ const TypesPage: React.FC = () => {
                           <span className="text-[10px] font-mono text-green-400/80 font-bold uppercase tracking-wider block">Takes ½x Damage</span>
                           <div className="flex flex-wrap gap-1.5">
                             {resistant.map((d) => (
-                              <TypeBadge key={d.type} type={d.type} size="sm" showIcon={false} />
+                              <TypeBadge key={d.type} type={d.type} size="sm" />
                             ))}
                           </div>
                         </div>
@@ -296,7 +297,7 @@ const TypesPage: React.FC = () => {
                       <span className="text-[10px] font-mono text-indigo-300 font-bold uppercase tracking-wider block font-black">Deals 2x Damage Against</span>
                       <div className="flex flex-wrap gap-1.5">
                         {strengths.map((t) => (
-                          <TypeBadge key={t} type={t} size="sm" showIcon={false} />
+                          <TypeBadge key={t} type={t} size="sm" />
                         ))}
                       </div>
                     </div>
@@ -345,20 +346,19 @@ const TypesPage: React.FC = () => {
                     >
                       <div
                         title={capitalize(t)}
-                        className={`w-7 h-7 rounded-lg mx-auto flex items-center justify-center font-bold text-[8.5px] transition-all border ${
+                        className={`w-7 h-7 rounded-lg mx-auto flex items-center justify-center transition-all border ${
                           isSelected
-                            ? 'border-white text-white font-black scale-105 shadow'
+                            ? 'border-white scale-105 shadow'
                             : isHovered
                             ? 'border-white/20 opacity-100 scale-102'
                             : 'border-white/5 opacity-80'
                         }`}
                         style={{
                           background: TYPE_COLORS[t]?.bg,
-                          color: TYPE_COLORS[t]?.text,
                           boxShadow: isSelected ? `0 0 10px ${TYPE_COLORS[t]?.glow}` : undefined,
                         }}
                       >
-                        {t.slice(0, 2).toUpperCase()}
+                        <TypeIcon type={t} size={15} color="#ffffff" />
                       </div>
                     </th>
                   )
@@ -388,7 +388,7 @@ const TypesPage: React.FC = () => {
                       onClick={() => handleToggleType(atk)}
                     >
                       <div className="flex items-center gap-1.5">
-                        <span className="text-sm select-none">{TYPE_EMOJI[atk]}</span>
+                        <TypeIcon type={atk} size={16} color={TYPE_COLORS[atk]?.bg} />
                         <span
                           className="font-bold text-[10px] tracking-wide"
                           style={{ color: TYPE_COLORS[atk]?.bg }}

@@ -25,12 +25,18 @@ const PIKACHU_FAMILY = [
 ]
 
 const WATERMARK_PRESETS = [
-  { x: 6, y: 15, size: 70, delay: 0.2 },
-  { x: 25, y: 55, size: 155, delay: 1.5 },
-  { x: 45, y: 22, size: 95, delay: 2.7 },
-  { x: 62, y: 72, size: 180, delay: 0.9 },
-  { x: 86, y: 16, size: 80, delay: 3.4 },
-  { x: 74, y: 44, size: 135, delay: 4.1 },
+  { x: 6, y: 12, size: 140, delay: 0.2 },
+  { x: 25, y: 28, size: 180, delay: 1.5 },
+  { x: 45, y: 42, size: 150, delay: 2.7 },
+  { x: 62, y: 58, size: 210, delay: 0.9 },
+  { x: 86, y: 72, size: 160, delay: 3.4 },
+  { x: 74, y: 88, size: 190, delay: 4.1 },
+  { x: 12, y: 92, size: 150, delay: 1.2 },
+  { x: 82, y: 35, size: 170, delay: 2.3 },
+  { x: 38, y: 78, size: 160, delay: 0.7 },
+  { x: 55, y: 18, size: 130, delay: 3.1 },
+  { x: 18, y: 64, size: 180, delay: 1.8 },
+  { x: 68, y: 48, size: 200, delay: 2.5 },
 ]
 
 export const BackgroundWatermarks: React.FC = () => {
@@ -57,14 +63,14 @@ export const BackgroundWatermarks: React.FC = () => {
     return [...STARTERS, ...LEGENDARIES]
   }, [path, currentTeam, favorites])
 
-  // Select 6 random watermarks from the candidates list
+  // Select 12 random watermarks from the candidates list
   const watermarks = useMemo(() => {
     if (candidates.length === 0) return []
     const shuffled = [...candidates].sort(() => 0.5 - Math.random())
-    const selectedIds = shuffled.slice(0, 6)
+    const selectedIds = shuffled.slice(0, 12)
     
-    // Fill up to 6 items if candidates list is too short
-    while (selectedIds.length < 6) {
+    // Fill up to 12 items if candidates list is too short
+    while (selectedIds.length < 12) {
       selectedIds.push(LEGENDARIES[Math.floor(Math.random() * LEGENDARIES.length)])
     }
 
